@@ -11,7 +11,7 @@ class DefaultDataSeeder extends Seeder
      */
     public function run()
     {
-        $this->seed();
+        //$this->seed();
     }
 
     public function seed(){

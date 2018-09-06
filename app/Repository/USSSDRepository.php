@@ -10,18 +10,24 @@ namespace App\Repository;
 
 
 use App\Fertilizer;
+use App\FertilizerPriceRange;
 use App\HarvestingDate;
-use App\Jobs\SendProjectSmsJob;
 use App\PlantingDate;
-use App\Project;
-use App\SubLocation;
+use App\Services\ConfigService;
+use App\Services\InvestmentsService;
+use App\Services\PriceRangeService;
+use App\Services\UnitPricesService;
+use App\Services\UnitsOfSaleService;
 use App\USSDSession;
 
 class USSSDRepository
 {
+    const CURRENT_FERTILIZER_KEY = "CURRENT_FERTILIZER_KEY";
+    const CURRENT_PRICE_RANGE_KEY = "CURRENT_PRICE_RANGE_KEY";
     protected $session;
     protected $routes;
     protected $backNavigationMode;
+    protected $input;
 
     /**
      * USSSDRepository constructor.
@@ -50,6 +56,9 @@ class USSSDRepository
      */
     public function execute($input, $isRepeat = false)
     {
+        #set input text
+        $this->input = $input['text'];
+
         $this->routes = $this->computeRoute($this->session->path);
 
         $lastInput = $this->getLastInput($input['text']);
@@ -65,28 +74,64 @@ class USSSDRepository
 
         $response = "";
 
+        $fertilizersCount = Fertilizer::count();
+
+        $pricesCount = FertilizerPriceRange::whereSessionId($this->session->id)->count();
+
+        $fertilizerLimit = $fertilizersCount + 1;
+        $fertilizerPriceRangeLimit = 1 + $pricesCount + $fertilizersCount;
+
+        //dd(["f" => $fertilizersCount, "n" => $pricesCount, "index" => sizeof($this->routes), "second last"=>$this->getSecondLastInput()]);
+
         switch (sizeof($this->routes)) {
+            #0
             case 0:
                 $response = $this->showPlantingDates();
                 break;
+            #1
             case 1;
                 #validate the planting date
                 $response = $this->showHarvestingDates($lastInput, $isRepeat);
                 break;
+            #f[1]
             case 2:
                 $response = $this->showFertilizers($lastInput, $isRepeat);
                 break;
-            case 3:
-                $response = $this->goToFetchProjects($lastInput, $isRepeat);
+            #f+2 == n1
+            case (1 + $fertilizerLimit):
+                $response = $this->showFertilizerPricesRanges($lastInput, $isRepeat);
                 break;
-            case 4:
-                $response = $this->goToFetchProjectSummary($lastInput, $isRepeat);
+            #f+n+2
+            case ($fertilizerPriceRangeLimit + 1):
+                #Units of sale
+                $response = $this->showUnitsOfSale($lastInput, $isRepeat);
                 break;
-            case 5:
-                $response = $this->sendSms("-1", true);
+            #f+n+3
+            case ($fertilizerPriceRangeLimit + 2):
+                #unit prices
+                $response = $this->showUnitPrices($lastInput, $isRepeat);
+                break;
+            #f+n+4
+            case ($fertilizerPriceRangeLimit + 3):
+                #maximal investment
+                $response = $this->showInvestments($lastInput, $isRepeat);
+                break;
+            #f+n+5
+            case ($fertilizerPriceRangeLimit + 4):
+                #The end
+                $response = $this->showLastScreen($lastInput);
                 break;
             default:
-                $response .= "Unknown action selected \n";
+                #3 to f+1
+                if (sizeof($this->routes) > 2 && sizeof($this->routes) <= $fertilizerLimit) {
+                    $response = $this->showOtherFertilizer($lastInput, $isRepeat);
+                } #f+3 == n[2] to f+n+1
+                else if (sizeof($this->routes) >= $fertilizerLimit + 2 && sizeof($this->routes) <= $fertilizerPriceRangeLimit) {
+                    $response = $this->showOtherFertilizerPricesRanges($lastInput, $isRepeat);
+                } else {
+                    $response = "Unknown action selected \n";
+                }
+
                 break;
         }
         $response .= "\n0 . Go back";
@@ -188,11 +233,15 @@ class USSSDRepository
 
         if ($plantingDate) {
 
+            //update session planting date
+            $this->session->planting_date_id = $plantingDate->id;
+            $this->session->save();
+
             if (!$isRepeat)
                 //update current path
                 $this->moveNavigationCursorToNext($plantingDate->id);
 
-            $response = "When is thee harvest date? \n";
+            $response = "When is the harvest date?" . $this->session->id . " \n";
 
             $harvestDates = HarvestingDate::all();
             $i = 1;
@@ -225,14 +274,24 @@ class USSSDRepository
     private function showFertilizers($harvestDateId, $isRepeat = false)
     {
         $harvestDates = HarvestingDate::query()->get();
-        if (sizeof($harvestDates) <= ($harvestDateId - 1)) {
+        if (is_numeric($harvestDateId) && $harvestDateId <= sizeof($harvestDates)) {
 
-            $fertilizer = Fertilizer::query()->first();
-            $response = "Do you use " . $fertilizer->name . " fertilizer?";
+            $harvestDate = $harvestDates[$harvestDateId - 1];
+
+            //update harvest date
+            $this->session->harvesting_date_id = $harvestDate->id;
+            $this->session->save();
+
+            $fertilizer = Fertilizer::first();
+            $response = "Do you use " . $fertilizer->name . " : " . $fertilizer->id . " fertilizer?\n";
+            $response .= "1. Yes\n2. No";
+
+            #set current fertilizer config
+            ConfigService::setConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, 1, $this->session->id);
 
             if (!$isRepeat)
                 //save the location
-                $this->moveNavigationCursorToNext($fertilizer->id);
+                $this->moveNavigationCursorToNext($harvestDate->id);
 
             return $response;
         }
@@ -243,141 +302,235 @@ class USSSDRepository
 
     }
 
-    private function goToFetchProjects($subLocationId, $isRepeat = false)
+    private function showFertilizerPricesRanges($selectedOption, $isRepeat = false)
     {
-        if (!$isRepeat) {
-            $offset = $subLocationId - 1;
+        //validate the selected option
+        if (is_numeric($selectedOption) && $selectedOption >= 1 && $selectedOption <= 2) {
+            //get fertilizer
+            $fertilizerId = ConfigService::getConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id)->value;
+            if ($isRepeat) {
+                $fertilizerId -= 1;
+            }
+            //dd($fertilizerId);
+            $fertilizer = Fertilizer::all()[$fertilizerId - 1];
 
-            $subLocation = \DB::table('sub_locations')
-                ->where('location_id', $this->routes[2])
-                ->orderBy('name')
-                ->offset($offset)
-                ->limit(1)->first();
-        } else {
-            $offset = 1;
-            $subLocation = SubLocation::find($subLocationId);
-        }
+            //add to fertilizer price range uf selected
+            if ($selectedOption == '1') {
 
-        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+                //get fertilizer price range
+                $fertilizerPriceRange = FertilizerPriceRange::whereFertilizerId($fertilizer->id)
+                    ->where("session_id", $this->session->id)->first();
 
-        if ($offset >= 0 && $subLocation) {
+                if (!$fertilizerPriceRange)
+                    $fertilizerPriceRange = new FertilizerPriceRange();
 
-            $projects = Project::whereSubLocationId($subLocation->id)
-                ->join('financial_years', 'projects.financial_year_id', '=', 'financial_years.id')
-                ->orderBy('financial_years.name', 'desc')
-                ->get(['projects.name', 'financial_years.name as financial_year']);
+                #set defaults
+                $fertilizerPriceRange->session_id = $this->session->id;
+                $fertilizerPriceRange->fertilizer_id = $fertilizer->id;
 
-            if (count($projects) > 0) {
-
-                $response = "Showing projects for " . $subLocation->name . " sub location. \n";
-
-                $i = 1;
-                foreach ($projects as $project) {
-                    $response .= $i . ". " . $project->financial_year . " " . $project->name . " \n";
-                    $i++;
-                }
-
-                if (!$isRepeat)
-                    $this->moveNavigationCursorToNext($subLocation->id);
-
-                return $response;
+                #save
+                $fertilizerPriceRange->save();
             }
 
-            $response = "There are no projects for this sub location \n";
-
-        }
-
-
-        return $response . $this->showFertilizers($this->routes[2], true);
-
-    }
-
-    private function goToFetchProjectSummary($projectId, $isRepeat = false)
-    {
-
-
-        if (!$isRepeat) {
-            $offset = $projectId - 1;
-
-            $project = \DB::table('projects')
-                ->join('financial_years', 'projects.financial_year_id', '=', 'financial_years.id')
-                ->where('sub_location_id', $this->routes[3])
-                ->orderBy('financial_years.name', 'desc')
-                ->offset($offset)
-                ->limit(1)
-                ->get(
-                    [
-                        'projects.id', 'projects.name', 'projects.financial_year_id', 'financial_years.name as financial_year', 'projects.sector',
-                        'projects.activity', 'projects.allocation', 'projects.summary'
-                    ]
-                )
+            #show first price range
+            $fertilizerPriceRange = FertilizerPriceRange::whereSessionId($this->session->id)
                 ->first();
+
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+                #increment fertilizer position
+                ConfigService::incrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+            }
+
+            return PriceRangeService::getRanges($fertilizerPriceRange);
+
         } else {
-            $offset = 0;
-
-            $project = Project::find($projectId);
+            $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+            return $response . $this->showOtherFertilizer($this->getSecondLastInput(), true);
         }
 
-
-        if ($offset >= 0 && $project) {
-
-            //dd($project);
-
-            /*if (!$isRepeat)
-                //save project id
-                $this->moveNavigationCursorToNext($project->id);
-
-            $response = $project->financial_year
-                . " " . $project->sector . " sector: \n"
-                . $project->name . ", " . $project->activity
-                . " KES " . $project->allocation . "\n";*/
-
-            $response = $project->financial_year
-                . " " . $project->sector . " sector: "
-                . $project->name;
-
-            return $response . " " . $this->sendSms($project->id);
-
-        }
-
-
-        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
-
-        return $response . $this->goToFetchProjects($this->routes[3], true);
     }
 
-    public function sendSms($projectId, $isRepeat = false)
+    private function showOtherFertilizer($selectedOption, $isRepeat = false)
     {
 
-        /*if ($input == 1) {
+        //validate the selected option
+        if (is_numeric($selectedOption) && $selectedOption >= 1 && $selectedOption <= 2) {
+            //get fertilizer
+            $fertilizerId = ConfigService::getConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id)->value;
+            if ($isRepeat) {
+                $fertilizerId -= 1;
+            }
 
-            $project = Project::find($this->routes[4]);*/
+            $selectedFertilizer = Fertilizer::all()[$fertilizerId - 1];
 
-        $response = "\n An sms with the project details "
-            . ($isRepeat ? "has already " : "")
-            . "been sent to your phone number " . $this->session->phone_no;
+            //add to fertilizer price range uf selected
+            if ($selectedOption == '1') {
 
-        if ($isRepeat) {
-            return "Invalid option. Try again" . $response;
+                //get fertilizer price range
+                $fertilizerPriceRange = FertilizerPriceRange::whereFertilizerId($selectedFertilizer->id)
+                    ->where("session_id", $this->session->id)->first();
+
+                if (!$fertilizerPriceRange)
+                    $fertilizerPriceRange = new FertilizerPriceRange();
+
+                #set defaults
+                $fertilizerPriceRange->session_id = $this->session->id;
+                $fertilizerPriceRange->fertilizer_id = $selectedFertilizer->id;
+
+                #save
+                $fertilizerPriceRange->save();
+            }
+
+            #Increment only when not in repeat mode
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+                #increment fertilizer position
+                ConfigService::incrementConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id);
+            }
+
+            $nextFertilizer = Fertilizer::all()[$fertilizerId];
+            $response = "Do you use " . $nextFertilizer->name . " : " . $nextFertilizer->id . " fertilizer?\n";
+            $response .= "1. Yes\n2. No";
+
+
+            return $response;
+
         }
-
-
-        $project = Project::find($projectId);
-        //save project id
-        $this->moveNavigationCursorToNext($project->id);
-
-        //dispatch the job to send sms
-        dispatch(new SendProjectSmsJob($project->summary, $this->session->phone_no));
-
-        return $response;
-
-        /*}*/
-
 
         $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
 
-        return $response . $this->goToFetchProjectSummary($this->routes[4], true);
+        return $response . $this->showOtherFertilizer($this->getSecondLastInput(), true);
+    }
 
+    public function getSecondLastInput()
+    {
+        $arr = explode('*', $this->input);
+        if (sizeof($arr) > 2)
+            return $arr[sizeof($arr) - 2];
+        return '';
+    }
+
+    public function showUnitsOfSale($selectedOption, $isRepeat = false)
+    {
+        //validate the selected option
+        if (PriceRangeService::isValidPriceRange($selectedOption)) {
+
+            $fertilizerPriceRangeId = ConfigService::getConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id)->value;
+
+            if ($isRepeat) {
+                $fertilizerPriceRangeId -= 1;
+            }
+
+            $fertilizerPriceRanges = FertilizerPriceRange::whereSessionId($this->session->id)->get();
+
+            $selectedFertilizerPriceRange = $fertilizerPriceRanges[$fertilizerPriceRangeId - 1];
+            //add to fertilizer price range uf selected
+            PriceRangeService::setRange($selectedFertilizerPriceRange, $selectedOption);
+
+            #Increment only when not in repeat mode
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+            }
+
+            return UnitsOfSaleService::getUnits();
+
+        }
+
+        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+
+        return $response . $this->showOtherFertilizerPricesRanges($this->getSecondLastInput(), true);
+    }
+
+    private function showOtherFertilizerPricesRanges($selectedOption, $isRepeat = false)
+    {
+        //validate the selected option
+        if (PriceRangeService::isValidPriceRange($selectedOption)) {
+
+            $fertilizerPriceRangeId = ConfigService::getConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id)->value;
+
+            if ($isRepeat) {
+                $fertilizerPriceRangeId -= 1;
+            }
+
+            $fertilizerPriceRanges = FertilizerPriceRange::whereSessionId($this->session->id)->get();
+
+            $selectedFertilizerPriceRange = $fertilizerPriceRanges[$fertilizerPriceRangeId - 1];
+            //add to fertilizer price range uf selected
+            PriceRangeService::setRange($selectedFertilizerPriceRange, $selectedOption);
+
+            #Increment only when not in repeat mode
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+                #increment fertilizer position
+                ConfigService::incrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+            }
+
+            return PriceRangeService::getRanges($fertilizerPriceRanges[$fertilizerPriceRangeId]);
+
+        }
+
+        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+
+        return $response . $this->showOtherFertilizerPricesRanges($this->getSecondLastInput(), true);
+    }
+
+    public function showUnitPrices($selectedOption, $isRepeat = false)
+    {
+        //validate the selected option
+        if (UnitsOfSaleService::setUnit($this->session, $selectedOption)) {
+
+            #Increment only when not in repeat mode
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+            }
+
+            return UnitPricesService::getUnits();
+
+        }
+
+        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+
+        return $response . $this->showUnitsOfSale($this->getSecondLastInput(), true);
+    }
+
+    public function showInvestments($selectedOption, $isRepeat = false)
+    {
+        //validate the selected option
+        if (UnitPricesService::setUnit($this->session, $selectedOption)) {
+
+            #Increment only when not in repeat mode
+            if (!$isRepeat) {
+                //save the location
+                $this->moveNavigationCursorToNext($selectedOption);
+            }
+
+            return InvestmentsService::getInvestments();
+
+        }
+
+        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+
+        return $response . $this->showUnitPrices($this->getSecondLastInput(), true);
+    }
+
+    public function showLastScreen($selectedOption)
+    {
+        //validate the selected option
+        if (InvestmentsService::setInvestment($this->session, $selectedOption)) {
+
+            return "END Thank you for using our service, an SMS with results will be sent to you shortly.";
+
+        }
+
+        $response = $this->backNavigationMode ? "" : "Invalid option. Try again \n";
+
+        return $response . $this->showInvestments($this->getSecondLastInput(), true);
     }
 
 
