@@ -228,6 +228,10 @@ class USSDRepository
         if (!$this->backNavigationMode)
             $this->doMoveToNext();
 
+        #Navigation controls
+        $response .= "\n0 . Go back";
+        $response .= "\n00 . Exit";
+
         return $response;
 
     }
