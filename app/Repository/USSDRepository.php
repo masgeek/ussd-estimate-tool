@@ -12,6 +12,7 @@ namespace App\Repository;
 use App\Constants\AppConstants;
 use App\Services\ConfigService;
 use App\Services\FertilizerService;
+use App\Services\FieldAreasService;
 use App\Services\HarvestDatesService;
 use App\Services\InvestmentsService;
 use App\Services\PlantingDatesService;
@@ -30,6 +31,7 @@ class USSDRepository
     protected $fertilizerPriceRangeLimit;
     protected $isRepeatMode;
     protected $isDebugMode = false;
+    protected $initialRoutes = 3;
 
     /**
      * USSSDRepository constructor.
@@ -123,7 +125,7 @@ class USSDRepository
         $lastInput = $this->getLastInput();
 
         #Fertilizer upper limit
-        $this->fertilizerLimit = FertilizerService::getCount() + 2;
+        $this->fertilizerLimit = FertilizerService::getCount() + $this->initialRoutes;
         #SelectedFertilizers upper limit
         $this->fertilizerPriceRangeLimit = $this->fertilizerLimit + PriceRangeService::getAvailableFertilizerCount($this->session);
 
@@ -180,6 +182,9 @@ class USSDRepository
                 $response = $this->showHarvestDates();
                 break;
             case 3:
+                $response = $this->showFieldAreas();
+                break;
+            case 4:
                 $response = $this->showFirstFertilizers();
                 break;
 
@@ -206,7 +211,7 @@ class USSDRepository
                 $response = $this->showLastScreen();
                 break;
             default:
-                if ($this->currentRoute > 3 && $this->currentRoute <= $this->fertilizerLimit) {
+                if ($this->currentRoute > $this->initialRoutes + 1 && $this->currentRoute <= $this->fertilizerLimit) {
                     $response = $this->showOtherFertilizer();
                 } else if ($this->currentRoute >= $this->fertilizerLimit + 2 && $this->currentRoute <= $this->fertilizerPriceRangeLimit) {
                     $response = $this->showOtherFertilizerPricesRanges();
@@ -245,17 +250,28 @@ class USSDRepository
         return null;
     }
 
+    private function showFieldAreas()
+    {
+
+        if (HarvestDatesService::setHarvestDate($this->session, $this->getLastInput())) {
+            #show fertilizers
+            return FieldAreasService::getFieldAreas();
+        }
+        return null;
+    }
+
     private function showFirstFertilizers()
     {
-        if (HarvestDatesService::setHarvestDate($this->session, $this->getLastInput())) {
+        if (FieldAreasService::setFieldArea($this->session, $this->getLastInput())) {
             #show fertilizers
             return FertilizerService::getFertilizer(1);
         }
+        return null;
     }
 
     private function showFertilizerPricesRanges()
     {
-        $currentFertilizer = $this->currentRoute - 2;
+        $currentFertilizer = $this->currentRoute - $this->initialRoutes;
         if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
             $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
             return PriceRangeService::getRanges($this->session, $currentPriceRangeIndex);
@@ -306,7 +322,7 @@ class USSDRepository
 
     private function showOtherFertilizer()
     {
-        $currentFertilizer = $this->currentRoute - 2;
+        $currentFertilizer = $this->currentRoute - $this->initialRoutes;
         if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
             return FertilizerService::getFertilizer($currentFertilizer);
         }

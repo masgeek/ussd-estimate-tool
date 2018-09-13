@@ -28,7 +28,7 @@ class UnitPricesService
         foreach ($unitPrices as $unit) {
             $response .= $i.". ". $helper->convert($currency, $unit->min) . "-"
                 . $helper->convert($currency, $unit->max)
-                . " ".$currency." Per tonne."."\n";
+                . " ".$currency." Per ".$session->unitOfSale->display.".\n";
             $i++;
         }
 

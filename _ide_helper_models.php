@@ -226,6 +226,12 @@ namespace App{
  * @property int|null $investment_id
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
+ * @property-read \App\FieldArea|null $fieldArea
+ * @property-read \App\HarvestingDate|null $harvestDate
+ * @property-read \App\Investment|null $investment
+ * @property-read \App\PlantingDate|null $plantingDate
+ * @property-read \App\UnitOfSale|null $unitOfSale
+ * @property-read \App\UnitPrice|null $unitPrice
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereFieldAreaId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereHarvestingDateId($value)
