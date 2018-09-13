@@ -22,10 +22,9 @@ class USSDController extends Controller
     {
 
         $response = $this->repo->execute($request->all());
-
         #if its an exit request dont append CON
-        if ($response == "END")
-            $response .= " Thank you for using our service, an SMS with results will be sent to you shortly.";
+        if (substr($response,0,3) == "END")
+            $response = "END Thank you for using our service, an SMS with results will be sent to you shortly.";
         else if ($response == "EXIT")
             $response = "END Thank you for using our service.";
         else
