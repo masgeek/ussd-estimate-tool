@@ -133,7 +133,7 @@ class USSDRepository
         if ($this->currentRoute > 1 && $lastInput === '0')
             return $this->onNavigateBack();
         else if ($this->currentRoute > 0 && $lastInput === '00')
-            return 'END';
+            return 'EXIT';
 
         return $this->buildResponse($isRepeat);
 

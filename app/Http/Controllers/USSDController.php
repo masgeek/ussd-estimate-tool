@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Repository\USSDRepository;
-use App\Repository\USSSDRepository;
 use Illuminate\Http\Request;
 
 class USSDController extends Controller
@@ -19,17 +18,20 @@ class USSDController extends Controller
     }
 
 
-    public function handleUSSD(Request $request){
+    public function handleUSSD(Request $request)
+    {
 
         $response = $this->repo->execute($request->all());
 
         #if its an exit request dont append CON
-        if($response!="END")
-            $response = "CON ".$response;
+        if ($response == "END")
+            $response .= " Thank you for using our service, an SMS with results will be sent to you shortly.";
+        else if ($response == "EXIT")
+            $response = "END Thank you for using our service.";
         else
-            $response.=" Thank you for using our service, an SMS with results will be sent to you shortly.";
+            $response = "CON " . $response;
 
 
-        return response($response,200,['Content-type: text/plain']);
+        return response($response, 200, ['Content-type: text/plain']);
     }
 }
