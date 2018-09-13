@@ -24,9 +24,11 @@ class USSSDRepository
 {
     const CURRENT_FERTILIZER_KEY = "CURRENT_FERTILIZER_KEY";
     const CURRENT_PRICE_RANGE_KEY = "CURRENT_PRICE_RANGE_KEY";
+    const CURRENT_ROUTE_KEY = "CURRENT_ROUTE_KEY";
     protected $session;
-    protected $routes;
     protected $backNavigationMode;
+    protected $currentRoute;
+    protected $routes;
     protected $input;
 
     /**
@@ -40,8 +42,10 @@ class USSSDRepository
             $this->session = new USSDSession();
             $this->session->session_id = request()->get('sessionId');
             $this->session->phone_no = request()->get('phoneNumber');
-            $this->session->path = "";
+            $this->session->path = "n";
             $this->session->save();
+
+            ConfigService::incrementConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id);
         }
 
         #Flag to indicate whether back navigation is on
@@ -56,6 +60,7 @@ class USSSDRepository
      */
     public function execute($input, $isRepeat = false)
     {
+
         #set input text
         $this->input = $input['text'];
 
@@ -63,9 +68,10 @@ class USSSDRepository
 
         $lastInput = $this->getLastInput($input['text']);
 
+        $this->currentRoute = ConfigService::getConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id)->value;
+
         //go back
         if (count($this->routes) > 0 && $lastInput === '0')
-
             return $this->navigateBack();
         else if (count($this->routes) > 0 && $lastInput === '00')
             return 'END';
@@ -78,55 +84,64 @@ class USSSDRepository
 
         $pricesCount = FertilizerPriceRange::whereSessionId($this->session->id)->count();
 
-        $fertilizerLimit = $fertilizersCount + 1;
-        $fertilizerPriceRangeLimit = 1 + $pricesCount + $fertilizersCount;
+        $fertilizerLimit = $fertilizersCount + 2;
+        $fertilizerPriceRangeLimit = 2 + $pricesCount + $fertilizersCount;
 
-        //dd(["f" => $fertilizersCount, "n" => $pricesCount, "index" => sizeof($this->routes), "second last"=>$this->getSecondLastInput()]);
+        //dd(["f" => $fertilizersCount, "n" => $pricesCount, "index" => $this->currentRoute, "second last"=>$this->getSecondLastInput()]);
 
-        switch (sizeof($this->routes)) {
+        echo "Current route: " . $this->currentRoute . "\n";
+
+        /*
+         * There is an extra n appended to the path which must be taken care of
+         * */
+        if ($this->backNavigationMode && $this->currentRoute > 1) {
+            $this->currentRoute -= 1;
+        }
+
+        switch ($this->currentRoute) {
             #0
-            case 0:
+            case 1:
                 $response = $this->showPlantingDates();
                 break;
             #1
-            case 1;
+            case 2;
                 #validate the planting date
                 $response = $this->showHarvestingDates($lastInput, $isRepeat);
                 break;
             #f[1]
-            case 2:
+            case 3:
                 $response = $this->showFertilizers($lastInput, $isRepeat);
                 break;
             #f+2 == n1
-            case (1 + $fertilizerLimit):
+            case (2 + $fertilizerLimit):
                 $response = $this->showFertilizerPricesRanges($lastInput, $isRepeat);
                 break;
             #f+n+2
-            case ($fertilizerPriceRangeLimit + 1):
+            case ($fertilizerPriceRangeLimit + 2):
                 #Units of sale
                 $response = $this->showUnitsOfSale($lastInput, $isRepeat);
                 break;
             #f+n+3
-            case ($fertilizerPriceRangeLimit + 2):
+            case ($fertilizerPriceRangeLimit + 3):
                 #unit prices
                 $response = $this->showUnitPrices($lastInput, $isRepeat);
                 break;
             #f+n+4
-            case ($fertilizerPriceRangeLimit + 3):
+            case ($fertilizerPriceRangeLimit + 4):
                 #maximal investment
                 $response = $this->showInvestments($lastInput, $isRepeat);
                 break;
             #f+n+5
-            case ($fertilizerPriceRangeLimit + 4):
+            case ($fertilizerPriceRangeLimit + 5):
                 #The end
                 $response = $this->showLastScreen($lastInput);
                 break;
             default:
                 #3 to f+1
-                if (sizeof($this->routes) > 2 && sizeof($this->routes) <= $fertilizerLimit) {
+                if ($this->currentRoute > 3 && $this->currentRoute <= $fertilizerLimit) {
                     $response = $this->showOtherFertilizer($lastInput, $isRepeat);
                 } #f+3 == n[2] to f+n+1
-                else if (sizeof($this->routes) >= $fertilizerLimit + 2 && sizeof($this->routes) <= $fertilizerPriceRangeLimit) {
+                else if ($this->currentRoute >= $fertilizerLimit + 3 && $this->currentRoute <= $fertilizerPriceRangeLimit) {
                     $response = $this->showOtherFertilizerPricesRanges($lastInput, $isRepeat);
                 } else {
                     $response = "Unknown action selected \n";
@@ -134,8 +149,14 @@ class USSSDRepository
 
                 break;
         }
+
+        $newRoute = ConfigService::getConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id)->value;
+
+        echo "\npath: " . $this->session->path . ", input: " . $lastInput." New route:". $newRoute. "\n";
+
         $response .= "\n0 . Go back";
         $response .= "\n00 . Exit";
+
 
         return $response;
 
@@ -163,23 +184,122 @@ class USSSDRepository
     private function navigateBack()
     {
 
-        //dd($this->routes, $this->session->path, implode("*", $arr), $arr);
+        /*//dd($this->routes, $this->session->path, implode("*", $arr), $arr);
+        if ($this->currentRoute > 0) {
 
-        $text = "";
+            //decrement
+            $conf1 = ConfigService::decrementConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id);
 
-        if (count($this->routes) > 0) {
+            echo "1. Decrementing from: " . $this->currentRoute . " to: " . $conf1->value . "\n";
+
+            //decrement
+            //$conf = ConfigService::decrementConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id);
+
+            //echo "2. decrementing from: " . $conf1->value . " to: " . $conf->value."\n";
+
+
+            #config
+            $fertilizersCount = Fertilizer::count();
+            $pricesCount = FertilizerPriceRange::whereSessionId($this->session->id)->count();
+
+
+            $fertilizerLimit = $fertilizersCount + 2;
+            $fertilizerPriceRangeLimit = 2 + $pricesCount + $fertilizersCount;
+
+            #fertilizer back navigation
+            if ($this->currentRoute >= 3 && $this->currentRoute <= $fertilizerLimit) {
+                ConfigService::decrementConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id);
+            } #f+3 == n[2] to f+n+1
+            else if ($this->currentRoute >= $fertilizerLimit + 3 && $this->currentRoute <= $fertilizerPriceRangeLimit) {
+                ConfigService::decrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+            }
+
             //remove last path
             array_pop($this->routes);
-            //save new path
+
+            #build new path
             $this->session->path = implode("*", $this->routes);
+
+
+            //save new path
             $this->session->save();
+        }*/
+
+        #config
+        $fertilizersCount = Fertilizer::count();
+        $pricesCount = FertilizerPriceRange::whereSessionId($this->session->id)->count();
+
+
+        $fertilizerLimit = $fertilizersCount + 2;
+        $fertilizerPriceRangeLimit = 2 + $pricesCount + $fertilizersCount;
+
+        /*switch ($this->currentRoute) {
+            #0
+            case 1:
+                ConfigService::setConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, 1,$this->session->id);
+                break;
+            #1
+            case 2;
+                ConfigService::setConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, 1,$this->session->id);
+                break;
+            /*#f[1]
+            case 3:
+                ConfigService::setConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, 2,$this->session->id);
+                break;
+            #f+2 == n1
+            case (2 + $fertilizerLimit):
+                $response = $this->showFertilizerPricesRanges($lastInput, $isRepeat);
+                break;
+            #f+n+2
+            case ($fertilizerPriceRangeLimit + 2):
+                #Units of sale
+                $response = $this->showUnitsOfSale($lastInput, $isRepeat);
+                break;
+            #f+n+3
+            case ($fertilizerPriceRangeLimit + 3):
+                #unit prices
+                $response = $this->showUnitPrices($lastInput, $isRepeat);
+                break;
+            #f+n+4
+            case ($fertilizerPriceRangeLimit + 4):
+                #maximal investment
+                $response = $this->showInvestments($lastInput, $isRepeat);
+                break;
+            #f+n+5
+            case ($fertilizerPriceRangeLimit + 5):
+                #The end
+                $response = $this->showLastScreen($lastInput);
+                break;
+            default:
+                #fertilizer back navigation
+                if ($this->currentRoute >= 3 && $this->currentRoute <= $fertilizerLimit) {
+                    ConfigService::decrementConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id);
+                } #f+3 == n[2] to f+n+1
+                else if ($this->currentRoute >= $fertilizerLimit + 3 && $this->currentRoute <= $fertilizerPriceRangeLimit) {
+                    ConfigService::decrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+                }
+                ConfigService::decrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+
+                break;
+        }*/
+
+        #fertilizer back navigation
+        if ($this->currentRoute >= 3 && $this->currentRoute <= $fertilizerLimit) {
+            ConfigService::decrementConfig(USSSDRepository::CURRENT_FERTILIZER_KEY, $this->session->id);
+        } #f+3 == n[2] to f+n+1
+        else if ($this->currentRoute >= $fertilizerLimit + 3 && $this->currentRoute <= $fertilizerPriceRangeLimit) {
+            ConfigService::decrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
         }
+        ConfigService::decrementConfig(USSSDRepository::CURRENT_PRICE_RANGE_KEY, $this->session->id);
+
 
         #set the back nav flag
         $this->backNavigationMode = true;
 
+        $previousInput = $this->getLastInput($this->session->path);
 
-        return $this->execute(["text" => "-20"], true);
+        #Pass a unlikely option as text
+        return $this->execute(["text" => $previousInput], true);
 
 
     }
@@ -195,7 +315,8 @@ class USSSDRepository
             $response .= $i . ". " . $date->display . " \n";
             $i++;
         }
-        if (count($this->routes) == 0)
+        //if (count($this->routes) == 0)
+        if (!$this->backNavigationMode)
             $this->moveNavigationCursorToNext('n');
 
         return $response;
@@ -213,9 +334,11 @@ class USSSDRepository
             $this->session->path .= $next;
         else
             $this->session->path .= "*" . $next;
-
-
         $this->session->save();
+
+        $conf = ConfigService::incrementConfig(USSSDRepository::CURRENT_ROUTE_KEY, $this->session->id);
+
+        echo " \n Incrementing from: " . $this->currentRoute . " To: " . $conf->value;
 
     }
 

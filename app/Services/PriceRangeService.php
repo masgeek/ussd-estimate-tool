@@ -10,18 +10,29 @@ namespace App\Services;
 
 
 use App\FertilizerPriceRange;
+use App\Helpers\CurrencyHelper;
 use App\PriceRange;
+use App\USSDSession;
 
 class PriceRangeService
 {
-    public static function getRanges(FertilizerPriceRange $fertilizerPriceRange)
+    public static function getRanges(USSDSession $session, $index)
     {
-        $response = "State the price of " . $fertilizerPriceRange->fertilizer->name . " if available ".$fertilizerPriceRange->fertilizer->id.".\n";
+        $fertilizerPriceRange = FertilizerPriceRange::whereSessionId($session->id)->get()[$index - 1];
+        $response = "State the price of " . $fertilizerPriceRange->fertilizer->name . " if available.\n";
+        #Add the first option
+        $response.= "1. Available but I do not know the price \n";
+
+        #currency math
+        $helper = new CurrencyHelper();
+        $currency = $helper->getCurrency($session->phone_no);
 
         $pricesRanges = PriceRange::all();
-        $i = 1;
+        $i = 2;
         foreach ($pricesRanges as $range) {
-            $response .= $i . ". " . $range->min . "-" . $range->max . " USD per 50kg bag\n";
+            $response .= $i . ". " . $helper->convert($currency, $range->min) . "-"
+                . $helper->convert($currency, $range->max)
+                . " ".$currency." per 50kg bag\n";
             $i++;
         }
 
@@ -29,19 +40,47 @@ class PriceRangeService
 
     }
 
-    public static function isValidPriceRange($priceRange)
+    /**
+     * @param int $fertilizerPriceRangeIndex
+     * @param USSDSession $session
+     * @param int $selectedOption
+     * @return bool
+     */
+    public static function setRange($fertilizerPriceRangeIndex, $session, $selectedOption)
     {
-        return is_numeric($priceRange) && $priceRange < PriceRange::count();
+        if (self::isValidPriceRange($selectedOption)) {
+            $fertilizerPriceRange = self::getFertilizerPriceRange($session, $fertilizerPriceRangeIndex);
+            if($selectedOption > 1){
+                $range = PriceRange::all()[$selectedOption - 2];
+                $fertilizerPriceRange->price_range_id = $range->id;
+            }else{
+                $fertilizerPriceRange->price_range_id = null;
+            }
+            $fertilizerPriceRange->save();
+            return true;
+        }
+        return false;
     }
 
-    /**
-     * @param FertilizerPriceRange $fertilizerPriceRange
-     * @param int $selectedOption
-     */
-    public static function setRange($fertilizerPriceRange, $selectedOption)
+    public static function isValidPriceRange($selectedOption)
     {
-        $range = PriceRange::all()[$selectedOption - 1];
-        $fertilizerPriceRange->price_range_id = $range->id;
-        $fertilizerPriceRange->save();
+        #PriceRange::count()+1 :=> To cater for the first option
+        return is_numeric($selectedOption) && $selectedOption > 0 && $selectedOption <= (PriceRange::count()+1);
     }
+
+    public static function getAvailableFertilizerCount(USSDSession $session)
+    {
+        return FertilizerPriceRange::whereSessionId($session->id)->count();
+    }
+
+    private static function getFertilizerPriceRange(USSDSession $session, $index)
+    {
+        $fertilizers = FertilizerPriceRange::whereSessionId($session->id)->get();
+        if ($index > 0 && $index <= sizeof($fertilizers)) {
+            return $fertilizers[$index - 1];
+        }
+        return null;
+    }
+
+
 }

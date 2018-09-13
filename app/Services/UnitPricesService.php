@@ -9,19 +9,26 @@
 namespace App\Services;
 
 
+use App\Helpers\CurrencyHelper;
 use App\UnitPrice;
 use App\USSDSession;
 
 class UnitPricesService
 {
-    public static function getUnits()
+    public static function getUnits(USSDSession $session)
     {
         $response = "State the unit price\n";
+
+        #currency math
+        $helper = new CurrencyHelper();
+        $currency = $helper->getCurrency($session->phone_no);
 
         $unitPrices = UnitPrice::all();
         $i = 1;
         foreach ($unitPrices as $unit) {
-            $response .= $i.". ".$unit->min . "-" . $unit->max . " Per tonne."."\n";
+            $response .= $i.". ". $helper->convert($currency, $unit->min) . "-"
+                . $helper->convert($currency, $unit->max)
+                . " ".$currency." Per tonne."."\n";
             $i++;
         }
 

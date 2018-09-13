@@ -13,6 +13,11 @@ use App\SessionConfig;
 
 class ConfigService
 {
+    /**
+     * @param $key
+     * @param $sessionId
+     * @return SessionConfig
+     */
     public static function incrementConfig($key, $sessionId)
     {
         #Get config
@@ -33,11 +38,22 @@ class ConfigService
         return $config;
     }
 
+    /**
+     * @param $key
+     * @param $sessionId
+     * @return SessionConfig
+     */
     public static function getConfig($key, $sessionId)
     {
         return SessionConfig::query()->where('key', $key)->where('session_id', $sessionId)->first();
     }
 
+    /**
+     * @param $key
+     * @param $value
+     * @param $sessionId
+     * @return SessionConfig
+     */
     public static function setConfig($key, $value, $sessionId)
     {
         #Get config
@@ -58,6 +74,11 @@ class ConfigService
         return $config;
     }
 
+    /**
+     * @param $key
+     * @param $sessionId
+     * @return SessionConfig
+     */
     public static function decrementConfig($key, $sessionId)
     {
         #Get config
@@ -67,14 +88,15 @@ class ConfigService
             return self::setConfig($key, 0, $sessionId);
         }
 
-        #increment config
+        #decrement config
         if (!is_numeric($config->value) || $config->value < 1) {
-            $config->value = 1;
+            $config->value = 0;
         } else {
             $config->value -= 1;
         }
 
         $config->save();
+
         return $config;
     }
 

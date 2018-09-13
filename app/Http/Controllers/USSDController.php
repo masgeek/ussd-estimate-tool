@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repository\USSDRepository;
 use App\Repository\USSSDRepository;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class USSDController extends Controller
      */
     public function __construct()
     {
-        $this->repo = new USSSDRepository;
+        $this->repo = new USSDRepository();
     }
 
 
@@ -26,7 +27,7 @@ class USSDController extends Controller
         if($response!="END")
             $response = "CON ".$response;
         else
-            $response.=" Thank you for using our USSD service.";
+            $response.=" Thank you for using our service, an SMS with results will be sent to you shortly.";
 
 
         return response($response,200,['Content-type: text/plain']);

@@ -9,19 +9,25 @@
 namespace App\Services;
 
 
+use App\Helpers\CurrencyHelper;
 use App\Investment;
 use App\USSDSession;
 
 class InvestmentsService
 {
-    public static function getInvestments()
+    public static function getInvestments(USSDSession $session)
     {
         $response = "State the Maximal investment\n";
+
+        #currency math
+        $helper = new CurrencyHelper();
+        $currency = $helper->getCurrency($session->phone_no);
 
         $investments = Investment::all();;
         $i = 1;
         foreach ($investments as $investment) {
-            $response .= $i . ". " . $investment->amount . " USD per acre" . "\n";
+            $response .= $i . ". " . $helper->convert($currency, $investment->amount)
+                . " " . $currency . " per acre" . "\n";
             $i++;
         }
 
