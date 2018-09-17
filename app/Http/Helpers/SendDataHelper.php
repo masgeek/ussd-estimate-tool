@@ -13,11 +13,17 @@ use App\FertilizerPriceRange;
 use App\Helpers\CurrencyHelper;
 use App\USSDSession;
 use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\MessageFormatter;
+use GuzzleHttp\Middleware;
+use Monolog\Handler\StreamHandler;
+use Concat\Http\Middleware\Logger;
+use Psr\Log\LogLevel;
 
 class SendDataHelper
 {
     protected $guzzle;
-    protected $url = 'http://estimate.tsobu.co.ke/v1/';
+    protected $url = 'https://estimate.tsobu.co.ke/v1/';
     protected $session;
 
     /**
@@ -28,13 +34,6 @@ class SendDataHelper
     public function __construct(USSDSession $session)
     {
         $this->session = $session;
-
-        $this->guzzle = new Client([
-            'base_uri' => $this->url,
-            'timeout' => 5.0,
-            'verify' => false
-        ]);
-
     }
 
     /**
@@ -59,11 +58,8 @@ class SendDataHelper
             "maximal_investment" => $this->session->investment->value
         ];
 
-//        dd(\GuzzleHttp\json_encode($data));
-
         #send data
-        //$this->sendData($data);
-        //$this->httpPost($this->url, $data);
+        $this->sendData($data);
     }
 
     private function getCountry()
@@ -97,46 +93,36 @@ class SendDataHelper
 
     public function sendData($data)
     {
+        $middleware = new Logger(function ($level, $message, array $context) {
+            // Log the message
+            echo $level."\n".$message;
+        });
+        $middleware->setRequestLoggingEnabled(false);
+        $middleware->setLogLevel(LogLevel::DEBUG);
+        $middleware->setFormatter(new MessageFormatter(MessageFormatter::DEBUG));
+
+        $stack = HandlerStack::create();
+        $stack->push($middleware);
+
+        $this->guzzle = new Client([
+            'base_uri' => $this->url,
+            'timeout' => 30,
+            'verify' => false,
+            //'handler' => $stack
+        ]);
+
         $response = $this->guzzle->post('compute/estimate',
             [
+                'json' => ($data),
                 'headers' => [
-                    'Accept' => 'application/json',
                     'Content-Type' => 'application/json'
-                ],
-                'json' => \GuzzleHttp\json_encode($data)
+                ]
             ]
         );
 
-        dd(json_decode((string)($response->getBody()), true));
-
-;
-        $response = $this->guzzle->request('POST', 'compute/estimate', [
-            'form_params' => $data
-        ]);
+        //dd(json_decode((string)($response->getBody()), true));
 
     }
 
-    function httpPost($url, $data)
-    {
-        /*$curl = \curl_init($url);
-        \curl_setopt($curl, CURLOPT_POST, true);
-        \curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-        \curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($curl);
-        \curl_close($curl);
-        return $response;*/
-        /*$options = array(
-            'http' => array(
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'POST',
-                'content' => http_build_query($data)
-            )
-        );
-        $context  = stream_context_create($options);
-        $result = file_get_contents($url, false, $context);
-        if ($result === FALSE) { /* Handle error */ /*}
 
-        var_dump($result);*/
-        \http_post_fields($this->url, $data);
-    }
 }
