@@ -2,12 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Http\Helpers\SendDataHelper;
 use App\USSDSession;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
 class SendEstimatesDataJob implements ShouldQueue
 {
@@ -23,6 +24,8 @@ class SendEstimatesDataJob implements ShouldQueue
     public function __construct(USSDSession $session)
     {
         $this->session = $session;
+
+
     }
 
     /**
@@ -32,6 +35,9 @@ class SendEstimatesDataJob implements ShouldQueue
      */
     public function handle()
     {
-
+        $helper = new SendDataHelper($this->session);
+        $helper->handle();
     }
+
+
 }

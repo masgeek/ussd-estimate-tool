@@ -12,4 +12,9 @@ class FertilizerPriceRange extends Model
     {
         return $this->belongsTo('App\Fertilizer','fertilizer_id');
     }
+
+    public function priceRange()
+    {
+        return $this->belongsTo('App\PriceRange','price_range_id');
+    }
 }

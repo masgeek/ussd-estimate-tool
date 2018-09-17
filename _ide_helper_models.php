@@ -202,6 +202,7 @@ namespace App{
  * @property int $fertilizer_id
  * @property int|null $price_range_id
  * @property-read \App\Fertilizer $fertilizer
+ * @property-read \App\PriceRange|null $priceRange
  * @method static \Illuminate\Database\Eloquent\Builder|\App\FertilizerPriceRange whereFertilizerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\FertilizerPriceRange whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\FertilizerPriceRange wherePriceRangeId($value)

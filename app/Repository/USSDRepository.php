@@ -10,6 +10,7 @@ namespace App\Repository;
 
 
 use App\Constants\AppConstants;
+use App\Jobs\SendEstimatesDataJob;
 use App\Services\ConfigService;
 use App\Services\FertilizerService;
 use App\Services\FieldAreasService;
@@ -313,6 +314,7 @@ class USSDRepository
     private function showLastScreen()
     {
         if (InvestmentsService::setInvestment($this->session, $this->getLastInput())) {
+            dispatch(new SendEstimatesDataJob($this->session));
             return "END";
         }
 
