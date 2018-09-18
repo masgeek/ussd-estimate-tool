@@ -38,17 +38,16 @@ abstract class DefaultData
 
 
     const FERTILIZERS = [
-        ["name" => "Urea"],
-        ["name" => "DAP"],
-        ["name" => "NPK17:17:17"],
-        ["name" => "NPK15:15:15"],
-        ["name" => "NPK20:10:10"],
-        ["name" => "NPK25:10:10"],
-        ["name" => "TSP"],
-        ["name" => "SSP"],
-        ["name" => "CAN"],
-        ["name" => "Nafaka plus"],
-        ["name" => "MOP"]
+        ["name" => "Urea","availability"=>"*"],
+        ["name" => "DAP","availability"=>"TZ"],
+        ["name" => "NPK17:17:17","availability"=>"*"],
+        ["name" => "NPK15:15:15","availability"=>"NG"],
+        ["name" => "NPK20:10:10","availability"=>"NG"],
+        ["name" => "TSP","availability"=>"*"],
+        ["name" => "SSP","availability"=>"NG"],
+        ["name" => "CAN","availability"=>"*"],
+        ["name" => "Nafaka plus","availability"=>"*"],
+        ["name" => "MOP","availability"=>"TZ"]
     ];
 
     const PRICE_RANGES = [

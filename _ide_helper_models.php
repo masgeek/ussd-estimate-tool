@@ -96,6 +96,8 @@ namespace App{
  *
  * @property int $id
  * @property string $name
+ * @property string $availability
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Fertilizer whereAvailability($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Fertilizer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Fertilizer whereName($value)
  */
@@ -219,6 +221,7 @@ namespace App{
  * @property string|null $session_id
  * @property string $path
  * @property string $phone_no
+ * @property string|null $currency
  * @property int|null $planting_date_id
  * @property int|null $field_area_id
  * @property int|null $harvesting_date_id
@@ -234,6 +237,7 @@ namespace App{
  * @property-read \App\UnitOfSale|null $unitOfSale
  * @property-read \App\UnitPrice|null $unitPrice
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereCurrency($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereFieldAreaId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereHarvestingDateId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereId($value)

@@ -1,0 +1,4 @@
+[2018-09-17 18:00:16] Logger.INFO: {"client":"ussd","lat":0,"long":0,"phone_no":"254723037600","country":1,"planting_date":"-1","harvest_date":"46","field_area":"0.5","fertilizers":[{"name":"Urea","cost":"0.5"},{"name":"DAP","cost":"0.5"}],"unit_price":"25","unit_of_sale":"1","maximal_investment":"62"} -  [] []
+[2018-09-17 18:00:17] Logger.INFO:  -  [] []
+[2018-09-17 18:02:44] Logger.INFO: {"client":"ussd","lat":0,"long":0,"phone_no":"254723037600","country":1,"planting_date":"-1","harvest_date":"46","field_area":"0.5","fertilizers":[{"name":"Urea","cost":"0.5"},{"name":"DAP","cost":"0.5"}],"unit_price":"25","unit_of_sale":"1","maximal_investment":"62"} -  [] []
+[2018-09-17 18:02:45] Logger.INFO:  -  [] []

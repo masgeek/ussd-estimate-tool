@@ -41,7 +41,7 @@ class CurrencyHelper
                     return "NGN";
             }
         }
-        return "USD";
+        return "TZS";
     }
 
 }

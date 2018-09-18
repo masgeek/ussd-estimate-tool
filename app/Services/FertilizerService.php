@@ -11,21 +11,42 @@ namespace App\Services;
 
 use App\Fertilizer;
 use App\FertilizerPriceRange;
+use App\Helpers\CurrencyHelper;
+use App\PriceRange;
 use App\USSDSession;
 
 class FertilizerService
 {
-    public static function getFertilizer($index)
+    public static function getFertilizer(USSDSession $session, $index)
     {
+        #currency math
+        $helper = new CurrencyHelper();
+
         #Get the fertilizer
-        $fertilizer = Fertilizer::all()[$index - 1];
+        $fertilizer = self::getFertilizers($session->currency)[$index - 1];
+
         #Build response
-        $response = "Do you use " . $fertilizer->name . " fertilizer?\n";
-        $response .= "1. Yes\n";
-        $response .= "2. No";
+        $response = "What is the price of " . $fertilizer->name . " fertilizer if  you use it?\n";
+        $response .= "1. Am not sure\n";
+
+        $pricesRanges = PriceRange::all();
+        $i = 2;
+        foreach ($pricesRanges as $range) {
+            $response .= $i . ". " . $helper->convert($session->currency, $range->min) . "-"
+                . $helper->convert($session->currency, $range->max)
+                . " " . $session->currency . " per 50kg bag\n";
+            $i++;
+        }
+
+        $response .= $i . ".I Do not use";
 
         return $response;
 
+    }
+
+    public static function getFertilizers($currency)
+    {
+        return Fertilizer::whereAvailability("*")->orWhere("availability", substr($currency, 0, 2))->get();
     }
 
     public static function setFertilizer(USSDSession $session, $selectedFertilizerId, $selectedOption)
@@ -33,15 +54,20 @@ class FertilizerService
         if (self::isValidOption($selectedOption)) {
 
             #Get selected fertilizer
-            $selectedFertilizer = Fertilizer::all()[$selectedFertilizerId - 1];
-            
+            $selectedFertilizer = self::getFertilizers($session->currency)[$selectedFertilizerId - 1];
+
             //get fertilizer price range
             $fertilizerPriceRange = FertilizerPriceRange::whereFertilizerId($selectedFertilizer->id)
                 ->where("session_id", $session->id)
                 ->first();
 
-            //add to fertilizer price range uf selected
-            if ($selectedOption == '1') {
+            $priceRanges = PriceRange::all();
+
+            if ($selectedOption == $priceRanges->count() + 2) {
+                #delete if it exists
+                if ($fertilizerPriceRange)
+                    $fertilizerPriceRange->delete();
+            } else {
 
                 if (!$fertilizerPriceRange)
                     $fertilizerPriceRange = new FertilizerPriceRange();
@@ -50,13 +76,15 @@ class FertilizerService
                 $fertilizerPriceRange->session_id = $session->id;
                 $fertilizerPriceRange->fertilizer_id = $selectedFertilizer->id;
 
+                #add to fertilizer price range uf selected
+                if ($selectedOption > 1) {
+                    $range = $priceRanges[$selectedOption - 2];
+                    $fertilizerPriceRange->price_range_id = $range->id;
+                }
+
                 #save
                 $fertilizerPriceRange->save();
 
-            } else {
-                #delete if it exists
-                if ($fertilizerPriceRange)
-                    $fertilizerPriceRange->delete();
             }
 
             return true;
@@ -66,11 +94,11 @@ class FertilizerService
 
     public static function isValidOption($selectedOption)
     {
-        return is_numeric($selectedOption) && $selectedOption >= 1 && $selectedOption <= 2;
+        return is_numeric($selectedOption) && $selectedOption >= 1 && $selectedOption <= PriceRange::count() + 2;
     }
 
-    public static function getCount()
+    public static function getCount($currency)
     {
-        return Fertilizer::count();
+        return Fertilizer::whereAvailability("*")->orWhere("availability", substr($currency, 0, 2))->count();
     }
 }

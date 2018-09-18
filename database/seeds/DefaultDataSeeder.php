@@ -11,7 +11,9 @@ class DefaultDataSeeder extends Seeder
      */
     public function run()
     {
-        $this->seed();
+        //$this->seed();
+        //fertilizers
+        $this->insert("fertilizers", \App\Constants\DefaultData::FERTILIZERS);
     }
 
     public function seed(){

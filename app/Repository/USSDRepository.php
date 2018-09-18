@@ -10,6 +10,7 @@ namespace App\Repository;
 
 
 use App\Constants\AppConstants;
+use App\Helpers\CurrencyHelper;
 use App\Jobs\SendEstimatesDataJob;
 use App\Services\ConfigService;
 use App\Services\FertilizerService;
@@ -55,6 +56,11 @@ class USSDRepository
             $this->session->session_id = request()->get('sessionId');
             $this->session->phone_no = request()->get('phoneNumber');
             $this->session->path = "";
+
+            #currency math
+            $helper = new CurrencyHelper();
+            $this->session->currency = $helper->getCurrency($this->session->phone_no);
+
             $this->session->save();
 
             #Init current path to one
@@ -126,7 +132,7 @@ class USSDRepository
         $lastInput = $this->getLastInput();
 
         #Fertilizer upper limit
-        $this->fertilizerLimit = FertilizerService::getCount() + $this->initialRoutes;
+        $this->fertilizerLimit = FertilizerService::getCount($this->session->currency) + $this->initialRoutes;
         #SelectedFertilizers upper limit
         $this->fertilizerPriceRangeLimit = $this->fertilizerLimit + PriceRangeService::getAvailableFertilizerCount($this->session);
 
@@ -189,34 +195,36 @@ class USSDRepository
                 $response = $this->showFirstFertilizers();
                 break;
 
-            case (1 + $this->fertilizerLimit):
+            /*case (1 + $this->fertilizerLimit):
                 $response = $this->showFertilizerPricesRanges();
-                break;
-            case   ($this->fertilizerPriceRangeLimit + 1):
+                break;*/
+
+            case   ($this->fertilizerLimit + 1):
                 #Units of sale
                 $response = $this->showUnitsOfSale();
                 break;
             #f+n+3
-            case ($this->fertilizerPriceRangeLimit + 2):
+            case ($this->fertilizerLimit + 2):
                 #unit prices
                 $response = $this->showUnitPrices();
                 break;
             #f+n+4
-            case ($this->fertilizerPriceRangeLimit + 3):
+            case ($this->fertilizerLimit + 3):
                 #maximal investment
                 $response = $this->showInvestments();
                 break;
             #f+n+5
-            case ($this->fertilizerPriceRangeLimit + 4):
+            case ($this->fertilizerLimit + 4):
                 #The end
                 $response = $this->showLastScreen();
                 break;
             default:
                 if ($this->currentRoute > $this->initialRoutes + 1 && $this->currentRoute <= $this->fertilizerLimit) {
                     $response = $this->showOtherFertilizer();
-                } else if ($this->currentRoute >= $this->fertilizerLimit + 2 && $this->currentRoute <= $this->fertilizerPriceRangeLimit) {
+                } /*else if ($this->currentRoute >= $this->fertilizerLimit + 2 && $this->currentRoute <= $this->fertilizerPriceRangeLimit) {
                     $response = $this->showOtherFertilizerPricesRanges();
-                } else {
+                }*/
+                else {
                     $response = "Unknown option selected";
                 }
                 break;
@@ -265,25 +273,15 @@ class USSDRepository
     {
         if (FieldAreasService::setFieldArea($this->session, $this->getLastInput())) {
             #show fertilizers
-            return FertilizerService::getFertilizer(1);
-        }
-        return null;
-    }
-
-    private function showFertilizerPricesRanges()
-    {
-        $currentFertilizer = $this->currentRoute - $this->initialRoutes;
-        if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
-            $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
-            return PriceRangeService::getRanges($this->session, $currentPriceRangeIndex);
+            return FertilizerService::getFertilizer($this->session, 1);
         }
         return null;
     }
 
     private function showUnitsOfSale()
     {
-        $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
-        if (PriceRangeService::setRange($currentPriceRangeIndex - 1, $this->session, $this->getLastInput())) {
+        $currentFertilizer = $this->currentRoute - $this->initialRoutes;
+        if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
             return UnitsOfSaleService::getUnits();
         }
 
@@ -326,18 +324,8 @@ class USSDRepository
     {
         $currentFertilizer = $this->currentRoute - $this->initialRoutes;
         if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
-            return FertilizerService::getFertilizer($currentFertilizer);
+            return FertilizerService::getFertilizer($this->session, $currentFertilizer);
         }
-        return null;
-    }
-
-    private function showOtherFertilizerPricesRanges()
-    {
-        $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
-        if (PriceRangeService::setRange($currentPriceRangeIndex - 1, $this->session, $this->getLastInput())) {
-            return PriceRangeService::getRanges($this->session, $currentPriceRangeIndex);
-        }
-
         return null;
     }
 
@@ -350,6 +338,26 @@ class USSDRepository
         // dd(["Last input: " => $this->getLastInput($this->session->path), "Current route: " => $this->currentRoute]);
 
         return $this->execute(["text" => $this->session->path], true);
+    }
+
+    private function showFertilizerPricesRanges()
+    {
+        $currentFertilizer = $this->currentRoute - $this->initialRoutes;
+        if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
+            $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
+            return PriceRangeService::getRanges($this->session, $currentPriceRangeIndex);
+        }
+        return null;
+    }
+
+    private function showOtherFertilizerPricesRanges()
+    {
+        $currentPriceRangeIndex = $this->currentRoute - $this->fertilizerLimit;
+        if (PriceRangeService::setRange($currentPriceRangeIndex - 1, $this->session, $this->getLastInput())) {
+            return PriceRangeService::getRanges($this->session, $currentPriceRangeIndex);
+        }
+
+        return null;
     }
 
 }
