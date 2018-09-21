@@ -67,9 +67,9 @@ class SendDataHelper
         $helper = new CurrencyHelper();
         switch ($helper->getCurrency($this->session->phone_no)) {
             case "TZS":
-                return 1;
-            case "NGN":
                 return 2;
+            case "NGN":
+                return 1;
             default;
                 return 1;
         }
