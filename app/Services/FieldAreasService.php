@@ -20,7 +20,7 @@ class FieldAreasService
     {
         $areas = FieldArea::all();
 
-        $response = "What is the size of your farm?\n";
+        $response = "What is the area of your cassava field?\n";
         $i = 1;
         foreach ($areas as $area) {
             $response .= $i . ". About " . $area->display . " acre\n";

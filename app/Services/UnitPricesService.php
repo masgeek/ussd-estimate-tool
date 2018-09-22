@@ -17,18 +17,18 @@ class UnitPricesService
 {
     public static function getUnits(USSDSession $session)
     {
-        $response = "State the unit price\n";
-
         #currency math
         $helper = new CurrencyHelper();
         $currency = $helper->getCurrency($session->phone_no);
 
+        $response = " At what price do you sell a ".$session->unitOfSale->display." of cassava roots?\n";
+
         $unitPrices = UnitPrice::all();
         $i = 1;
         foreach ($unitPrices as $unit) {
-            $response .= $i.". ". $helper->convert($currency, $unit->min) . "-"
-                . $helper->convert($currency, $unit->max)
-                . " ".$currency." Per ".$session->unitOfSale->display.".\n";
+            $response .= $i.". ". $helper->convert($currency, ($unit->min/1000)*$session->unitOfSale->value) . "-"
+                . $helper->convert($currency, ($unit->max/1000)*$session->unitOfSale->value)
+                . " ".$currency."\n";
             $i++;
         }
 

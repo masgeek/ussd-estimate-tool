@@ -19,7 +19,7 @@ class PlantingDatesService
     {
         $dates = PlantingDate::all();
 
-        $response = "Welcome to field yield estimation tool.\nWhen is the planting date?\n";
+        $response = "Welcome to the cassava fertilizer recommendation tool!\nWhen have you planted (or will you plant) your cassava crop?\n";
         $i = 1;
         foreach ($dates as $date) {
             $response .= $i . ". " . $date->display . " \n";

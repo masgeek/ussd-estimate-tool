@@ -13,6 +13,7 @@ class CurrencyHelper
 {
     protected $TZS = 2250;
     protected $NGN = 360;
+    protected $precision = 3;
 
     public function convert($currency, $amount){
         switch ($currency){
@@ -27,7 +28,17 @@ class CurrencyHelper
                 break;
         }
 
-        return $amount * $factor;
+        $amount = $amount * $factor;
+        return number_format($amount);
+/*
+        if($amount >= 10000)
+            $this->precision = 3;
+        elseif ($amount >= 1000)
+            $this->precision = 2;
+        else
+            $this->precision = -1;
+
+        return   number_format(abs(round((($amount) - 50), -1*$this->precision)));*/
     }
 
     public function getCurrency($phone){
@@ -41,7 +52,7 @@ class CurrencyHelper
                     return "NGN";
             }
         }
-        return "TZS";
+        return "NGN";
     }
 
 }

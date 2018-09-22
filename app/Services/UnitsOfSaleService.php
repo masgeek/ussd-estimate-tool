@@ -16,7 +16,7 @@ class UnitsOfSaleService
 {
     public static function getUnits()
     {
-        $response = "State the unit of sale\n";
+        $response = "In what units do you set price for your cassava root produce?\n";
 
         $unitsOfSale = UnitOfSale::all();
         $i = 1;

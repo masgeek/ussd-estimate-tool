@@ -16,7 +16,7 @@ class HarvestDatesService
 {
     public static function getHarvestDates()
     {
-        $response = "When is the harvest date?" . " \n";
+        $response = "When will you harvest your cassava crop?\n";
         $harvestDates = HarvestingDate::all();
         $i = 1;
         foreach ($harvestDates as $date) {

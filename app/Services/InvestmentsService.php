@@ -17,7 +17,7 @@ class InvestmentsService
 {
     public static function getInvestments(USSDSession $session)
     {
-        $response = "State the Maximal investment\n";
+        $response = "How much are you willing to invest in this cassava field?\n";
 
         #currency math
         $helper = new CurrencyHelper();

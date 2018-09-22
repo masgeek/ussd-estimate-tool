@@ -26,7 +26,7 @@ class FertilizerService
         $fertilizer = self::getFertilizers($session->currency)[$index - 1];
 
         #Build response
-        $response = "What is the price of " . $fertilizer->name . " fertilizer if  you use it?\n";
+        $response = "What is the price of a 50 kg bag of " . $fertilizer->name . " in your area?\n";
         $response .= "1. Am not sure\n";
 
         $pricesRanges = PriceRange::all();
@@ -34,11 +34,11 @@ class FertilizerService
         foreach ($pricesRanges as $range) {
             $response .= $i . ". " . $helper->convert($session->currency, $range->min) . "-"
                 . $helper->convert($session->currency, $range->max)
-                . " " . $session->currency . " per 50kg bag\n";
+                . " " . $session->currency . "\n";
             $i++;
         }
 
-        $response .= $i . ".I Do not use";
+        $response .= $i . ".This fertilizer is not available in my area.";
 
         return $response;
 
