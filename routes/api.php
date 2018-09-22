@@ -18,21 +18,7 @@
 */
 
 
-
-#send reset password email
-Route::post('/password/email', 'Auth\ForgotPasswordController@index');
-
-#reset email
-Route::post('/password/reset', 'Auth\ResetPasswordController@index');
-
-#verify email
-Route::get('/user/email/verify/{token}', 'Auth\EmailVerificationController@index');
-
-//load filters
-Route::get('/filter/list', 'FilterController@fetch');
-
-//load projects
-Route::get('/project/list', 'ProjectController@fetch');
-
 //load projects
 Route::post('/ussd', 'USSDController@handleUSSD');
+//load projects
+Route::post('/ussd1', 'USSDV2Controller@handleUSSD');

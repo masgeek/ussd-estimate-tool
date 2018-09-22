@@ -108,7 +108,7 @@ class SendDataHelper
             'base_uri' => $this->url,
             'timeout' => 30,
             'verify' => false,
-            'handler' => $stack
+            //'handler' => $stack
         ]);
 
         $response = $this->guzzle->post('compute/estimate',
