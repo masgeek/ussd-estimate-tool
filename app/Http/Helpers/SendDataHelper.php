@@ -60,7 +60,7 @@ class SendDataHelper
         ];
 
         #send data
-        $this->sendData($data);
+        //$this->sendData($data);
     }
 
     private function getCountry()
