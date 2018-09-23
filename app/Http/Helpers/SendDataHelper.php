@@ -34,6 +34,7 @@ class SendDataHelper
     public function __construct(USSDSession $session)
     {
         $this->session = $session;
+        $this->session->fresh(['plantingDate','harvestDate','investment','fieldArea','unitPrice','unitOfSale']);
     }
 
     /**
@@ -64,8 +65,7 @@ class SendDataHelper
 
     private function getCountry()
     {
-        $helper = new CurrencyHelper();
-        switch ($helper->getCurrency($this->session->phone_no)) {
+        switch ($this->session->currency) {
             case "TZS":
                 return 2;
             case "NGN":
@@ -93,7 +93,7 @@ class SendDataHelper
 
     public function sendData($data)
     {
-        $middleware = new Logger(function ($level, $message, array $context) {
+        /*$middleware = new Logger(function ($level, $message, array $context) {
             // Log the message
             echo $level."\n".$message;
         });
@@ -102,7 +102,7 @@ class SendDataHelper
         $middleware->setFormatter(new MessageFormatter(MessageFormatter::DEBUG));
 
         $stack = HandlerStack::create();
-        $stack->push($middleware);
+        $stack->push($middleware);*/
 
         $this->guzzle = new Client([
             'base_uri' => $this->url,

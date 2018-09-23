@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class USSDSession extends Model
 {
+    // 'plantingDate','harvestDate','investment','fieldArea','unitPrice','unitOfSale'
 
     public function plantingDate()
     {
