@@ -17,7 +17,7 @@ class InvestmentsService
 {
     public static function getInvestments(USSDSession $session)
     {
-        $response = "How much are you willing to invest in this cassava field?\n";
+        $response = "How much are you willing to invest in this ".$session->fieldArea->display." acre cassava field?\n";
 
         #currency math
         $helper = new CurrencyHelper();
@@ -26,8 +26,8 @@ class InvestmentsService
         $investments = Investment::all();;
         $i = 1;
         foreach ($investments as $investment) {
-            $response .= $i . ". " . $helper->convert($currency, $investment->amount)
-                . " " . $currency . " per acre" . "\n";
+            $response .= $i . ". " . $helper->convert($currency, ($investment->amount*$session->fieldArea->value))
+                . " " . $currency  . "\n";
             $i++;
         }
 
