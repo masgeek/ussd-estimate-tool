@@ -290,7 +290,7 @@ class USSDV1Repository
     private function showLastScreen()
     {
         if (InvestmentsService::setInvestment($this->session, $this->getLastInput())) {
-            dispatch(new SendEstimatesDataJob($this->session));
+            SendEstimatesDataJob::dispatch($this->session);
             return "END";
         }
 
