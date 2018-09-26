@@ -17,7 +17,7 @@ class InvestmentsService
 {
     public static function getInvestments(USSDSession $session)
     {
-        $response = "How much are you willing to invest in this ".$session->fieldArea->display." acre cassava field?\n";
+        $response = "How much are you willing to invest in this ".$session->fieldArea->display." cassava field?\n";
 
         #currency math
         $helper = new CurrencyHelper();

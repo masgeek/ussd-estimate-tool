@@ -13,6 +13,11 @@ class USSDSession extends Model
         return $this->belongsTo('App\PlantingDate', 'planting_date_id');
     }
 
+    public function harvestQuantity()
+    {
+        return $this->belongsTo('App\Quantity', 'harvest_quantity_id');
+    }
+
     public function harvestDate()
     {
         return $this->belongsTo('App\HarvestingDate', 'planting_date_id');

@@ -28,7 +28,7 @@ class CurrencyHelper
                 break;
         }
 
-        $amount = (int)ceil($amount * $factor);
+        //$amount = (int)ceil($amount * $factor);
         return number_format($amount);
 /*
         if($amount >= 10000)

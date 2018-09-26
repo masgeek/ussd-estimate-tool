@@ -106,6 +106,20 @@ namespace App{
 
 namespace App{
 /**
+ * App\Quantity
+ *
+ * @property int $id
+ * @property string $display
+ * @property string $value
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Quantity whereDisplay($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Quantity whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Quantity whereValue($value)
+ */
+	class Quantity extends \Eloquent {}
+}
+
+namespace App{
+/**
  * App\Location
  *
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\SubLocation[] $subLocations
@@ -224,6 +238,7 @@ namespace App{
  * @property string|null $currency
  * @property int|null $planting_date_id
  * @property int|null $field_area_id
+ * @property int|null $harvest_quantity_id
  * @property int|null $harvesting_date_id
  * @property int|null $unit_of_sale_id
  * @property int|null $unit_price_id
@@ -232,6 +247,7 @@ namespace App{
  * @property \Carbon\Carbon|null $updated_at
  * @property-read \App\FieldArea|null $fieldArea
  * @property-read \App\HarvestingDate|null $harvestDate
+ * @property-read \App\Quantity|null $harvestQuantity
  * @property-read \App\Investment|null $investment
  * @property-read \App\PlantingDate|null $plantingDate
  * @property-read \App\UnitOfSale|null $unitOfSale
@@ -239,6 +255,7 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereCurrency($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereFieldAreaId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereHarvestQuantityId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereHarvestingDateId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereInvestmentId($value)

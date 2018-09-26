@@ -23,7 +23,7 @@ class FieldAreasService
         $response = "What is the area of your cassava field?\n";
         $i = 1;
         foreach ($areas as $area) {
-            $response .= $i . ". About " . $area->display . " acre\n";
+            $response .= $i . ". About " . $area->display . "\n";
             $i++;
         }
 

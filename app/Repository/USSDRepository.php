@@ -15,7 +15,7 @@ use App\Jobs\SendEstimatesDataJob;
 use App\Services\ConfigService;
 use App\Services\FertilizerService;
 use App\Services\FieldAreasService;
-use App\Services\HarvestDatesService;
+use App\Services\HarvestQuantityService;
 use App\Services\InvestmentsService;
 use App\Services\PlantingDatesService;
 use App\Services\PriceRangeService;
@@ -186,10 +186,10 @@ class USSDRepository
                 $response = PlantingDatesService::getPlantingDates();
                 break;
             case 2:
-                $response = $this->showHarvestDates();
+                $response = $this->showFieldAreas();
                 break;
             case 3:
-                $response = $this->showFieldAreas();
+                $response = $this->showHarvestQuantity();
                 break;
             case 4:
                 $response = $this->showFirstFertilizers();
@@ -250,28 +250,28 @@ class USSDRepository
 
     }
 
-    private function showHarvestDates()
-    {
-        if (PlantingDatesService::setPlantingDate($this->session, $this->getLastInput())) {
-            #show harvest dates
-            return HarvestDatesService::getHarvestDates();
-        }
-        return null;
-    }
-
     private function showFieldAreas()
     {
 
-        if (HarvestDatesService::setHarvestDate($this->session, $this->getLastInput())) {
+        if (PlantingDatesService::setPlantingDate($this->session, $this->getLastInput())) {
             #show fertilizers
             return FieldAreasService::getFieldAreas();
         }
         return null;
     }
 
-    private function showFirstFertilizers()
+    private function showHarvestQuantity()
     {
         if (FieldAreasService::setFieldArea($this->session, $this->getLastInput())) {
+            #show harvest dates
+            return HarvestQuantityService::getQuantities($this->session);
+        }
+        return null;
+    }
+
+    private function showFirstFertilizers()
+    {
+        if (HarvestQuantityService::setQuantity($this->session, $this->getLastInput())) {
             #show fertilizers
             return FertilizerService::getFertilizer($this->session, 1);
         }

@@ -19,42 +19,43 @@ abstract class DefaultData
         ["display" => "In 2-4 weeks", "value" => "2"]
     ];
 
-
-    const  HARVESTING_DATES= [
-        ["display" => "8-9 months", "value" => "37"],
-        ["display" => "10-12 months", "value" => "46"],
-        ["display" => "1 year (12 months)", "value" => "52"],
-        ["display" => "13-14 months", "value" => "59"],
-        ["display" => "15-16 months", "value" => "67"]
+    const FIELD_AREAS = [
+        ["display" => "0.25 acre (0.1ha)", "value" => "0.25"],
+        ["display" => "0.5 acre (0.2ha)", "value" => "0.5"],
+        ["display" => "1 acre (0.4ha)", "value" => "1"],
+        ["display" => "2.5 acre (1ha)", "value" => "2.5"],
     ];
 
-    const FIELD_AREAS = [
-        ["display" => "0.25", "value" => "0.25"],
-        ["display" => "0.5", "value" => "0.5"],
-        ["display" => "1", "value" => "1"],
-        ["display" => "2", "value" => "2"],
-        ["display" => "5", "value" => "5"]
+
+    const  HARVESTING_QUANTITY= [
+        ["display" => "< 4", "value" => "37"],
+        ["display" => "4-8", "value" => "46"],
+        ["display" => "8-12", "value" => "52"],
+        ["display" => "12-16", "value" => "59"],
+        ["display" => "> 16", "value" => "67"]
     ];
 
 
     const FERTILIZERS = [
-        ["name" => "Urea","availability"=>"*"],
-        ["name" => "DAP","availability"=>"TZ"],
-        ["name" => "NPK17:17:17","availability"=>"*"],
-        ["name" => "NPK15:15:15","availability"=>"NG"],
+        ["name" => "Urea", "availability" => "*"],
+        ["name" => "NPK15:15:15", "availability" => "NG"],
+        ["name" => "MOP", "availability" => "*"]
+        /*["name" => "NPK17:17:17","availability"=>"*"],
         ["name" => "NPK20:10:10","availability"=>"NG"],
         ["name" => "TSP","availability"=>"*"],
+        ["name" => "DAP","availability"=>"*"],
         ["name" => "SSP","availability"=>"NG"],
         ["name" => "CAN","availability"=>"*"],
-        ["name" => "Nafaka plus","availability"=>"*"],
-        ["name" => "MOP","availability"=>"TZ"]
+        ["name" => "Nafaka plus","availability"=>"*"],*/
     ];
 
     const PRICE_RANGES = [
-        ["min" => "20", "max" => "30", "value" => "0.5"],
-        ["min" => "30", "max" => "40", "value" => "0.7"],
-        ["min" => "40", "max" => "50", "value" => "0.9"],
-        ["min" => "50", "max" => "60", "value" => "1.1"]
+        ["min" => "6000", "max" => "10000", "value" => "0.5"],
+        ["min" => "10000", "max" => "14000", "value" => "0.7"],
+        ["min" => "14000", "max" => "18000", "value" => "0.9"],
+        ["min" => "18000", "max" => "22000", "value" => "1.1"],
+        ["min" => "22000", "max" => "26000", "value" => "1.1"],
+        ["min" => "26000", "max" => "30000", "value" => "1.1"]
     ];
 
     const UNITS_OF_SALE = [
@@ -62,25 +63,25 @@ abstract class DefaultData
         ["display" => "kg", "value" => "1"],
         ["display" => "50 kg bag", "value" => "50"],
         ["display" => "100 kg bag", "value" => "100"],
-        ["display" => "5pick up load (2tonnes)", "value" => "2000"]
 
     ];
 
     const UNIT_PRICES = [
-        ["min" => "20", "max" => "30", "value" => "25"],
-        ["min" => "30", "max" => "50", "value" => "40"],
-        ["min" => "50", "max" => "100", "value" => "75"],
-        ["min" => "100", "max" => "150", "value" => "125"],
-        ["min" => "150", "max" => "200", "value" => "175"]
+        ["min" => "5000", "max" => "10000", "value" => "25"],
+        ["min" => "10000", "max" => "15000", "value" => "40"],
+        ["min" => "15000", "max" => "20000", "value" => "75"],
+        ["min" => "20000", "max" => "25000", "value" => "125"],
+        ["min" => "25000", "max" => "30000", "value" => "175"],
+        ["min" => "30000", "max" => "35000", "value" => "175"]
     ];
 
 
     const MAXIMAL_INVESTMENTS = [
-        ["amount" => "25", "value" => "62"],
-        ["amount" => "50", "value" => "124"],
-        ["amount" => "100", "value" => "247"],
-        ["amount" => "150", "value" => "371"],
-        ["amount" => "200", "value" => "494"]
+        ["amount" => "7500", "value" => "62"],
+        ["amount" => "15000", "value" => "124"],
+        ["amount" => "30000", "value" => "247"],
+        ["amount" => "45000", "value" => "371"],
+        ["amount" => "60000", "value" => "494"]
     ];
 
 }

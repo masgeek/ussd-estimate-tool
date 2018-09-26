@@ -11,20 +11,18 @@ class DefaultDataSeeder extends Seeder
      */
     public function run()
     {
-        //$this->seed();
-        //fertilizers
-        $this->insert("fertilizers", \App\Constants\DefaultData::FERTILIZERS);
+        $this->seed();
     }
 
     public function seed(){
+        //fertilizers
+        $this->insert("fertilizers", \App\Constants\DefaultData::FERTILIZERS);
         //planting dates
         $this->insert("planting_dates", \App\Constants\DefaultData::PLANTING_DATES);
         //harvesting dates
-        $this->insert("harvesting_dates", \App\Constants\DefaultData::HARVESTING_DATES);
+        $this->insert("quantities", \App\Constants\DefaultData::HARVESTING_QUANTITY);
         //field areas
         $this->insert("field_areas", \App\Constants\DefaultData::FIELD_AREAS);
-        //fertilizers
-        $this->insert("fertilizers", \App\Constants\DefaultData::FERTILIZERS);
         //price_ranges
         $this->insert("price_ranges", \App\Constants\DefaultData::PRICE_RANGES);
         //units of sale
