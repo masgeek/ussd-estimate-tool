@@ -24,7 +24,7 @@ class USSDV2Controller extends Controller
         $response = $this->repo->execute($request->all());
         #if its an exit request dont append CON
         if (substr($response, 0, 3) == "END")
-            $response = "END Thank you for using our service, an SMS with results will be sent to you shortly.";
+            $response = "END Results submitted successfully. You will receive an SMS with recommendations.";
         else if ($response == "EXIT")
             $response = "END Thank you for using our service.";
         else
