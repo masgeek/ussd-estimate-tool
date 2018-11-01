@@ -10,14 +10,6 @@
 
 namespace App{
 /**
- * App\Project
- *
- */
-	class Project extends \Eloquent {}
-}
-
-namespace App{
-/**
  * App\PlantingDate
  *
  * @property int $id
@@ -60,15 +52,6 @@ namespace App{
 
 namespace App{
 /**
- * App\SubLocation
- *
- * @property-read \App\Location $location
- */
-	class SubLocation extends \Eloquent {}
-}
-
-namespace App{
-/**
  * App\FieldArea
  *
  * @property int $id
@@ -79,15 +62,6 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\FieldArea whereValue($value)
  */
 	class FieldArea extends \Eloquent {}
-}
-
-namespace App{
-/**
- * App\SmsMessage
- *
- * @mixin \Eloquent
- */
-	class SmsMessage extends \Eloquent {}
 }
 
 namespace App{
@@ -120,31 +94,10 @@ namespace App{
 
 namespace App{
 /**
- * App\Location
- *
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\SubLocation[] $subLocations
- * @property-read \App\Ward $ward
- */
-	class Location extends \Eloquent {}
-}
-
-namespace App{
-/**
  * App\FinancialYear
  *
  */
 	class FinancialYear extends \Eloquent {}
-}
-
-namespace App{
-/**
- * App\User
- *
- * @property-read \Illuminate\Database\Eloquent\Collection|\Laravel\Passport\Client[] $clients
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
- * @property-read \Illuminate\Database\Eloquent\Collection|\Laravel\Passport\Token[] $tokens
- */
-	class User extends \Eloquent {}
 }
 
 namespace App{
@@ -235,6 +188,7 @@ namespace App{
  * @property string|null $session_id
  * @property string $path
  * @property string $phone_no
+ * @property string|null $language
  * @property string|null $currency
  * @property int|null $planting_date_id
  * @property int|null $field_area_id
@@ -259,6 +213,7 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereHarvestingDateId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereInvestmentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereLanguage($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession wherePath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession wherePhoneNo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession wherePlantingDateId($value)
@@ -268,14 +223,5 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\USSDSession whereUpdatedAt($value)
  */
 	class USSDSession extends \Eloquent {}
-}
-
-namespace App{
-/**
- * App\Ward
- *
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Location[] $locations
- */
-	class Ward extends \Eloquent {}
 }
 

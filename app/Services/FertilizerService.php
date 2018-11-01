@@ -9,6 +9,7 @@
 namespace App\Services;
 
 
+use App\Constants\Languages;
 use App\Fertilizer;
 use App\FertilizerPriceRange;
 use App\Helpers\CurrencyHelper;
@@ -26,9 +27,12 @@ class FertilizerService
         $fertilizer = self::getFertilizers($session->currency)[$index - 1];
 
         #Build response
-        $response = "What is the price of a 50 kg bag of " . $fertilizer->name . " in your area?\n";
-        $response .= "1. Am not sure\n";
+        $response = self::getTranslation()['header'][$session->language];
+        #Replace [FERT] with fertilizer name
+        $response = str_replace('[FERT]',$fertilizer->name,$response)."\n";
 
+        #Add first option
+        $response .= "1. ".self::getTranslation()['first_option'][$session->language]."\n";
         $pricesRanges = PriceRange::all();
         $i = 2;
         foreach ($pricesRanges as $range) {
@@ -37,8 +41,7 @@ class FertilizerService
                 . " " . $session->currency . "\n";
             $i++;
         }
-
-        $response .= $i . ".This fertilizer is not available in my area.";
+        $response .= $i .". ".self::getTranslation()['last_option'][$session->language]."\n";
 
         return $response;
 
@@ -100,5 +103,26 @@ class FertilizerService
     public static function getCount($currency)
     {
         return Fertilizer::whereAvailability("*")->orWhere("availability", substr($currency, 0, 2))->count();
+    }
+
+    private static function getTranslation()
+    {
+        return [
+            'header' => [
+                Languages::ENGLISH => 'How much (in NGN) is a 50kg bag of [FERT] at your local agro-dealer?',
+                Languages::YORUBA => 'Naira melo ni ajile [FERT] apo 50kg ni agbegbe yin?',
+                Languages::IBO => 'Ego ole (na naira) bu akpa ntuezi [FERT] 50kg n’ime obodo gi?'
+            ],
+            'first_option' => [
+                Languages::ENGLISH => 'I am not sure',
+                Languages::YORUBA => 'Ko da mi loju',
+                Languages::IBO => 'Odoghi m anya'
+            ],
+            'last_option' => [
+                Languages::ENGLISH => 'The fertilizer is not available',
+                Languages::YORUBA => 'Ko si ajile yi ni agbegbe mi',
+                Languages::IBO => 'Anaghi enweta udi ntuezi bekeea'
+            ]
+        ];
     }
 }

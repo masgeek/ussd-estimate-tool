@@ -28,7 +28,7 @@ class HarvestDatesService
 
     public static function setHarvestDate(USSDSession $session, $selectedOption)
     {
-        $harvestDates = HarvestingDate::all();;
+        $harvestDates = HarvestingDate::all();
         if (is_numeric($selectedOption) && $selectedOption > 0 && $selectedOption <= sizeof($harvestDates)) {
             $harvestDate = $harvestDates[$selectedOption - 1];
             $session->harvesting_date_id = $harvestDate->id;
@@ -37,5 +37,8 @@ class HarvestDatesService
         }
         return false;
     }
+
+
+
 
 }

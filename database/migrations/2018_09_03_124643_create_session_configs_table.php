@@ -16,7 +16,7 @@ class CreateSessionConfigsTable extends Migration
         Schema::create('session_configs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('session_id')->nullable();
-            $table->string("key")->unique();
+            $table->string("key");
             $table->string("value");
         });
     }

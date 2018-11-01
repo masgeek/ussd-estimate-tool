@@ -10,6 +10,7 @@ namespace App\Repository;
 
 
 use App\Constants\AppConstants;
+use App\Constants\Languages;
 use App\Helpers\CurrencyHelper;
 use App\Jobs\SendEstimatesDataJob;
 use App\Services\ConfigService;
@@ -17,6 +18,7 @@ use App\Services\FertilizerService;
 use App\Services\FieldAreasService;
 use App\Services\HarvestQuantityService;
 use App\Services\InvestmentsService;
+use App\Services\LanguageService;
 use App\Services\PlantingDatesService;
 use App\Services\PriceRangeService;
 use App\Services\UnitPricesService;
@@ -33,7 +35,7 @@ class USSDRepository
     protected $fertilizerPriceRangeLimit;
     protected $isRepeatMode;
     protected $isDebugMode = false;
-    protected $initialRoutes = 3;
+    protected $initialRoutes = 4;
 
     /**
      * USSSDRepository constructor.
@@ -183,15 +185,18 @@ class USSDRepository
         $this->debug("Debug before");
         switch ($this->currentRoute) {
             case 1:
-                $response = PlantingDatesService::getPlantingDates();
+                $response = LanguageService::getLanguages();
                 break;
             case 2:
-                $response = $this->showFieldAreas();
+                $response = $this->showPlantingDates();
                 break;
             case 3:
-                $response = $this->showHarvestQuantity();
+                $response = $this->showFieldAreas();
                 break;
             case 4:
+                $response = $this->showHarvestQuantity();
+                break;
+            case 5:
                 $response = $this->showFirstFertilizers();
                 break;
 
@@ -242,12 +247,36 @@ class USSDRepository
         if (!$this->backNavigationMode)
             $this->doMoveToNext();
 
+        $language = $this->session->language==null||sizeof($this->session->language)==0?Languages::YORUBA:$this->session->language;
+
+        $back = [
+            Languages::ENGLISH =>'Go back',
+            Languages::YORUBA =>'Pada',
+            Languages::IBO =>'Nahachi'
+        ];
+
+        $exit = [
+            Languages::ENGLISH =>'Exit',
+            Languages::YORUBA =>'Kuro patapata',
+            Languages::IBO =>'Puo'
+        ];
+
         #Navigation controls
-        $response .= "\n0 . Go back";
-        $response .= "\n00 . Exit";
+        $response .= "\n0 . ".$back[$language];
+        $response .= "\n00 . ".$exit[$language];
 
         return $response;
 
+    }
+
+    private function showPlantingDates()
+    {
+
+        if (LanguageService::setLanguage($this->session, $this->getLastInput())) {
+            #show fertilizers
+            return PlantingDatesService::getPlantingDates($this->session);
+        }
+        return null;
     }
 
     private function showFieldAreas()
@@ -255,7 +284,7 @@ class USSDRepository
 
         if (PlantingDatesService::setPlantingDate($this->session, $this->getLastInput())) {
             #show fertilizers
-            return FieldAreasService::getFieldAreas();
+            return FieldAreasService::getFieldAreas($this->session);
         }
         return null;
     }
@@ -282,7 +311,7 @@ class USSDRepository
     {
         $currentFertilizer = $this->currentRoute - $this->initialRoutes;
         if (FertilizerService::setFertilizer($this->session, $currentFertilizer - 1, $this->getLastInput())) {
-            return UnitsOfSaleService::getUnits();
+            return UnitsOfSaleService::getUnits($this->session);
         }
 
         return null;
@@ -313,7 +342,14 @@ class USSDRepository
     {
         if (InvestmentsService::setInvestment($this->session, $this->getLastInput())) {
             SendEstimatesDataJob::dispatch($this->session);
-            return "END";
+
+            $translations = [
+                Languages::ENGLISH => "Results submitted successfully. You will receive an SMS with recommendations.\nDISCLAIMER! This is a simulator for demonstration and testing purposes only!",
+                Languages::YORUBA => "Awon idahun yin ti lo ni bi o se ye. E yoo gba atejise pelu iyanju lori nkan ti o ye ki e se.\nIKILO PATAKI: Imoran yii wa fun ayewo ati apejuwe lasan lori bi ero yi se n sise si ni",
+                Languages::IBO => "Osisa etinyere gala nke oma. I ga enweta ozi na ngbazie ndi so ya.\nKPACHARA ANYA: Nkea bu nkpalite nani maka ngosiputa na mmare!"
+            ];
+
+            return "END ".$translations[$this->session->language];
         }
 
         return null;

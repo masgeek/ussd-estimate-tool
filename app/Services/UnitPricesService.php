@@ -9,6 +9,7 @@
 namespace App\Services;
 
 
+use App\Constants\Languages;
 use App\Helpers\CurrencyHelper;
 use App\UnitPrice;
 use App\USSDSession;
@@ -21,14 +22,14 @@ class UnitPricesService
         $helper = new CurrencyHelper();
         $currency = $helper->getCurrency($session->phone_no);
 
-        $response = " At what price do you sell a ".$session->unitOfSale->display." of cassava roots?\n";
+        $response = self::getTranslation()['header'][$session->language]."\n";
 
         $unitPrices = UnitPrice::all();
         $i = 1;
         foreach ($unitPrices as $unit) {
-            $response .= $i.". ". $helper->convert($currency, ($unit->min/1000)*$session->unitOfSale->value) . "-"
-                . $helper->convert($currency, ($unit->max/1000)*$session->unitOfSale->value)
-                . " ".$currency."\n";
+            $response .= $i . ". " . $helper->convert($currency, ($unit->min / 1000) * $session->unitOfSale->value) . "-"
+                . $helper->convert($currency, ($unit->max / 1000) * $session->unitOfSale->value)
+                . " " . $currency . "\n";
             $i++;
         }
 
@@ -46,5 +47,16 @@ class UnitPricesService
             return true;
         }
         return false;
+    }
+
+    public static function getTranslation()
+    {
+        return [
+            'header' => [
+                Languages::ENGLISH => 'How much (in NGN) do you sell a ton/kg/(50kg/100kg) bag of cassava roots?',
+                Languages::YORUBA => 'Naira melo ni ton/kg/ apo (50kg/100kg) ege kan?',
+                Languages::IBO => 'Ego ole (na naira) bu tonne/ kg/akpa 50kg/akpa 100kg akpu?'
+            ]
+        ];
     }
 }

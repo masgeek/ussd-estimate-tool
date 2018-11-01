@@ -9,20 +9,20 @@
 namespace App\Services;
 
 
-use App\Investment;
+use App\Constants\Languages;
 use App\PlantingDate;
 use App\USSDSession;
 
 class PlantingDatesService
 {
-    public static function getPlantingDates()
+    public static function getPlantingDates(USSDSession $session)
     {
-        $dates = PlantingDate::all();
+        $language = $session->language==null||sizeof($session->language)==0?Languages::YORUBA:$session->language;
 
-        $response = "Welcome to the cassava fertilizer recommendation tool!\nWhen have you planted (or will you plant) your cassava crop?\n";
+        $response = self::getTranslations()['header'][$language]."\n";
         $i = 1;
-        foreach ($dates as $date) {
-            $response .= $i . ". " . $date->display . " \n";
+        foreach (self::getTranslations()['data'] as $date) {
+            $response .= $i . ". " . $date[$language] . " \n";
             $i++;
         }
 
@@ -40,6 +40,24 @@ class PlantingDatesService
             return true;
         }
         return false;
+    }
+
+    public static function getTranslations()
+    {
+        return [
+            "header" => [
+                Languages::ENGLISH => 'When will/did you plant your cassava crop?',
+                Languages::YORUBA => 'Igba wo ni e gbin/e fee gbin ege si oko yii?',
+                Languages::IBO => 'Izu uka abuo-anu galaga?',
+            ],
+            "data" => [
+                [Languages::ENGLISH => '2-4 weeks ago', Languages::YORUBA => 'Ose meji - merin seyin', Languages::IBO => 'Out izu uka-abuo galaga',],
+                [Languages::ENGLISH => '1-2 weeks ago', Languages::YORUBA => 'Ose kan - meji seyin', Languages::IBO => 'Izu ukaa',],
+                [Languages::ENGLISH => 'This week', Languages::YORUBA => 'Ose yi', Languages::IBO => 'Otu izu uka-abuo',],
+                [Languages::ENGLISH => 'In 1-2 weeks', Languages::YORUBA => 'Ose kan - meji to’nbo', Languages::IBO => 'Izu uka abuo-anu',],
+                [Languages::ENGLISH => 'In 2-4 weeks', Languages::YORUBA => 'Ose meji - merin to’nbo', Languages::IBO => 'Nahachi',]
+            ]
+        ];
     }
 
 }

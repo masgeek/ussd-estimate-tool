@@ -9,19 +9,20 @@
 namespace App\Services;
 
 
+use App\Constants\Languages;
 use App\UnitOfSale;
 use App\USSDSession;
 
 class UnitsOfSaleService
 {
-    public static function getUnits()
+    public static function getUnits(USSDSession $session)
     {
-        $response = "In what units do you set price for your cassava root produce?\n";
+        $response = self::getTranslation()['header'][$session->language]."\n";
 
-        $unitsOfSale = UnitOfSale::all();
+        $unitsOfSale = self::getTranslation()['data'];
         $i = 1;
         foreach ($unitsOfSale as $unit) {
-            $response .= $i . ". " . "Per " . $unit->display . "\n";
+            $response .= $i .'. '. $unit[$session->language] . "\n";
             $i++;
         }
 
@@ -39,5 +40,38 @@ class UnitsOfSaleService
             return true;
         }
         return false;
+    }
+
+    private static function getTranslation()
+    {
+        return [
+            'header' => [
+                Languages::ENGLISH => 'In what units do you set price for your cassava root produce?',
+                Languages::YORUBA => 'Bawo ni e se ma n won ege yin ti e ba fee ta?',
+                Languages::IBO => 'Gini bu ntu onu ego I ji ele akpu gi?'
+            ],
+            'data' => [
+                [
+                    Languages::ENGLISH => 'Per tonne',
+                    Languages::YORUBA => 'Ni tonne ni tonne',
+                    Languages::IBO => 'Kwa tonne'
+                ],
+                [
+                    Languages::ENGLISH => 'Per kg',
+                    Languages::YORUBA => 'Ni kg ni kg',
+                    Languages::IBO => 'Kwa kg'
+                ],
+                [
+                    Languages::ENGLISH => 'Per 50 kg bag',
+                    Languages::YORUBA => 'Ni bag 50 kg',
+                    Languages::IBO => 'Kwa ntu akpa iri ise kg'
+                ],
+                [
+                    Languages::ENGLISH => 'Per 100 kg bag',
+                    Languages::YORUBA => 'Ni bag 100 kg',
+                    Languages::IBO => 'Kwa ntu akpa otu nari kg'
+                ]
+            ]
+        ];
     }
 }

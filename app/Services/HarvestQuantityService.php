@@ -9,7 +9,7 @@
 namespace App\Services;
 
 
-use App\HarvestingDate;
+use App\Constants\Languages;
 use App\Quantity;
 use App\USSDSession;
 
@@ -17,7 +17,7 @@ class HarvestQuantityService
 {
     public static function getQuantities(USSDSession $session)
     {
-        $response = " What quantity of roots do you commonly produce in your field of ".$session->fieldArea->display."?\n";
+        $response = self::getTranslation()['header'][$session->language] . "\n";
         $harvestQuantities = Quantity::all();
         $i = 1;
         foreach ($harvestQuantities as $quantity) {
@@ -25,6 +25,17 @@ class HarvestQuantityService
             $i++;
         }
         return $response;
+    }
+
+    private static function getTranslation()
+    {
+        return [
+            'header' => [
+                Languages::ENGLISH => 'What quantity of roots do you commonly produce in your field of',
+                Languages::YORUBA => 'Bawo ni ege ti o maa n ri ni ori oko … e se po to?',
+                Languages::IBO => 'Kedu ka akpu I na-adi akuputa na ubi gi la?',
+            ]
+        ];
     }
 
     public static function setQuantity(USSDSession $session, $selectedOption)
