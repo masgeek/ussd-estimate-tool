@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Fertilizer extends Model
+class Translation extends Model
 {
-    protected $fillable = ["name"];
+    public $timestamps = false;
 }

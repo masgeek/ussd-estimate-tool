@@ -30,9 +30,6 @@ class CreateFertilizerPriceRangesTable extends Migration
                 ->references('id')->on('fertilizers')
                 ->onUpdate('CASCADE')->onDelete('CASCADE');
 
-            $table->foreign("price_range_id")
-                ->references('id')->on('price_ranges')
-                ->onUpdate('CASCADE')->onDelete('SET NULL');
 
         });
     }

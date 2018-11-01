@@ -11,28 +11,171 @@ namespace App\Constants;
 
 abstract class DefaultData
 {
+
     const PLANTING_DATES = [
-        ["display" => "2-4 weeks ago", "value" => "-3"],
-        ["display" => "1-2 weeks ago", "value" => "-1"],
-        ["display" => "This week", "value" => "0"],
-        ["display" => "In 1-2 weeks", "value" => "1"],
-        ["display" => "In 2-4 weeks", "value" => "2"]
+
+        [
+            'menu' => [
+                "value" => "-3",
+                "type" => ModelConstants::PLANTING_DATES
+            ],
+            'translation' => [
+                'english' => '2-4 weeks ago',
+                'yoruba' => 'Ose meji - merin seyin',
+                'ibo' => 'Out izu uka-abuo galaga',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "-1",
+                "type" => ModelConstants::PLANTING_DATES
+            ],
+            'translation' => [
+                'english' => '1-2 weeks ago',
+                'yoruba' => 'Ose kan - meji seyin',
+                'ibo' => 'Izu ukaa',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "0",
+                "type" => ModelConstants::PLANTING_DATES
+            ],
+            'translation' => [
+                'english' => 'This week',
+                'yoruba' => 'Ose yi',
+                'ibo' => 'Otu izu uka-abuo',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "1",
+                "type" => ModelConstants::PLANTING_DATES
+            ],
+            'translation' => [
+                'english' => 'In 1-2 weeks',
+                'yoruba' => 'Ose kan - meji to’nbo',
+                'ibo' => 'Izu uka abuo-anu',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "2",
+                "type" => ModelConstants::PLANTING_DATES
+            ],
+            'translation' => [
+                'english' => 'In 2-4 weeks',
+                'yoruba' => 'Ose meji - merin to’nbo',
+                'ibo' => 'Nahachi',
+            ]
+        ],
+
     ];
 
     const FIELD_AREAS = [
-        ["display" => "0.25 acre (0.1ha)", "value" => "0.25"],
-        ["display" => "0.5 acre (0.2ha)", "value" => "0.5"],
-        ["display" => "1 acre (0.4ha)", "value" => "1"],
-        ["display" => "2.5 acre (1ha)", "value" => "2.5"],
+        [
+            'menu' => [
+                "value" => "0.25",
+                "type" => ModelConstants::FIELD_AREAS
+            ],
+            'translation' => [
+                'english' => 'About 0.25 acre (0.1 ha)',
+                'yoruba' => 'Bi ilarin eeka (0.1 ha)',
+                'ibo' => 'O la ka otu uzo n’ime uzo anu acre (0.1 ha)',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "0.5",
+                "type" => ModelConstants::FIELD_AREAS
+            ],
+            'translation' => [
+                'english' => 'About 0.5 acre (0.2 ha)',
+                'yoruba' => 'Bi ilaji eeka (0.2 ha)',
+                'ibo' => 'O la ka ukara acre (0.2 ha)',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "1",
+                "type" => ModelConstants::FIELD_AREAS
+            ],
+            'translation' => [
+                'english' => 'About 1 acre (0.4 ha)',
+                'yoruba' => 'Bi eeka kan (0.4 ha)',
+                'ibo' => 'O la ka otu acre (0.4 ha)',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "2.5",
+                "type" => ModelConstants::FIELD_AREAS
+            ],
+            'translation' => [
+                'english' => 'About 2.5 acre (1 ha)',
+                'yoruba' => 'Bi eeka meji ati abo (1 ha)',
+                'ibo' => 'O la ka abuo na ukara acre (1 ha)',
+            ]
+        ]
     ];
 
 
-    const  HARVESTING_QUANTITY= [
-        ["display" => "< 4", "value" => "37"],
-        ["display" => "4-8", "value" => "46"],
-        ["display" => "8-12", "value" => "52"],
-        ["display" => "12-16", "value" => "59"],
-        ["display" => "> 16", "value" => "67"]
+    const  HARVESTING_QUANTITY = [
+        [
+            'menu' => [
+                "value" => "37",
+                "type" => ModelConstants::QUANTITY
+            ],
+            'translation' => [
+                'english' => 'Less than 1 tonne',
+                'yoruba' => 'O kere si tonne kan',
+                'ibo' => 'O naghi eru otu ntu tonne',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "46",
+                "type" => ModelConstants::QUANTITY
+            ],
+            'translation' => [
+                'english' => '1 – 2 tonnes',
+                'yoruba' => 'Bi tonne kan si tonne meji',
+                'ibo' => 'Otu ntu-ntu abuo tonne ',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "52",
+                "type" => ModelConstants::QUANTITY
+            ],
+            'translation' => [
+                'english' => '2 – 3 tonnes',
+                'yoruba' => 'Bi tonne meji si tonne meta',
+                'ibo' => 'Ntu abuo-ntu ato tonne',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "59",
+                "type" => ModelConstants::QUANTITY
+            ],
+            'translation' => [
+                'english' => '3 – 4 tonnes',
+                'yoruba' => 'Bi tonne meta si tonne merin',
+                'ibo' => 'Ntu ato-ntu anu tonne',
+            ]
+        ],
+        [
+            'menu' => [
+                "value" => "67",
+                "type" => ModelConstants::QUANTITY
+            ],
+            'translation' => [
+                'english' => 'More than 4 tonnes',
+                'yoruba' => 'O ju tonne merin lo',
+                'ibo' => 'O na kari ntu anu tonne',
+            ]
+        ],
     ];
 
 

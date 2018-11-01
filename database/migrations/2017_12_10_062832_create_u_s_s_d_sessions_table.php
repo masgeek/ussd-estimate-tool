@@ -18,6 +18,8 @@ class CreateUSSDSessionsTable extends Migration
             $table->string('session_id')->nullable();
             $table->string('path')->default("");
             $table->string('phone_no');
+            $table->string("currency")->nullable();
+            $table->string("locale")->nullable();
             $table->unsignedInteger("planting_date_id")->nullable();
             $table->unsignedInteger("field_area_id")->nullable();
             $table->unsignedInteger("harvesting_date_id")->nullable();
