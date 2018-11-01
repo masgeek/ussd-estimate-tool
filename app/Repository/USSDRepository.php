@@ -247,7 +247,7 @@ class USSDRepository
         if (!$this->backNavigationMode)
             $this->doMoveToNext();
 
-        $language = $this->session->language==null||sizeof($this->session->language)==0?Languages::YORUBA:$this->session->language;
+        $language = $this->session->language==null||sizeof($this->session->language)==0?Languages::ENGLISH:$this->session->language;
 
         $back = [
             Languages::ENGLISH =>'Go back',
